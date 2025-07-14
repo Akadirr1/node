@@ -45,7 +45,7 @@
 			const noAppointments = document.getElementById('noAppointments');
 
 			try {
-				const response = await fetch('http://localhost:3000/profile/myAppointments', {
+				const response = await fetch('/profile/myAppointments', {
 					credentials: 'include'
 				});
 
@@ -139,7 +139,7 @@
 			}
 
 			try {
-				const response = await fetch(`http://localhost:3000/profile/${appointmentId}`, {
+				const response = await fetch(`/profile/${appointmentId}`, {
 					method: 'DELETE',
 					credentials: 'include'
 				});

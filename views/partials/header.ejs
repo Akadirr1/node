@@ -67,7 +67,7 @@
 
 		async function checkUserStatus() {
 			try {
-				const response = await fetch('http://localhost:3000/profile/me', {
+				const response = await fetch('/profile/me', {
 					credentials: 'include'
 				});
 
@@ -100,7 +100,7 @@
 		async function logoutUser() {
 			try {
 				// Cookie'yi temizlemek için logout endpoint'i çağır
-				const response = await fetch('http://localhost:3000/profile/logout', {
+				const response = await fetch('/profile/logout', {
 					method: 'POST',
 					credentials: 'include'
 				});

@@ -163,7 +163,7 @@
 
 		async function checkUserAuthentication() {
 			try {
-				const response = await fetch('http://localhost:3000/profile/me', {
+				const response = await fetch('/profile/me', {
 					credentials: 'include'
 				});
 
@@ -192,7 +192,7 @@
 			const barbersGrid = document.getElementById('barbersGrid');
 
 			try {
-				const response = await fetch('http://localhost:3000/api/barbers/getBarbers');
+				const response = await fetch('/api/barbers/getBarbers');
 				const data = await response.json();
 
 				loading.style.display = 'none';
@@ -323,7 +323,7 @@
 				const day = String(date.getDate()).padStart(2, '0');
 				const dateStr = `${year}-${month}-${day}`;
 
-				const url = `http://localhost:3000/api/appointments/availability/${selectedBarberId}?date=${dateStr}`;
+				const url = `/api/appointments/availability/${selectedBarberId}?date=${dateStr}`;
 				console.log('Fetching from URL:', url);
 
 				const response = await fetch(url);
@@ -377,7 +377,7 @@
 
 		async function createAppointment(startTime) {
 			try {
-				const response = await fetch('http://localhost:3000/api/appointments', {
+				const response = await fetch('/api/appointments', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
