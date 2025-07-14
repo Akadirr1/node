@@ -1,0 +1,430 @@
+<%- include('partials/header')%>
+
+	<div class="container mt-5">
+		<div class="row">
+			<div class="col-md-10 mx-auto">
+				<!-- Barber Selection Step -->
+				<div id="barberSelection">
+					<h2 class="text-center mb-4">Berber Seçin</h2>
+
+					<!-- Loading Spinner -->
+					<div id="loading" class="text-center">
+						<div class="spinner-border" role="status">
+							<span class="sr-only">Yükleniyor...</span>
+						</div>
+					</div>
+
+					<!-- Error Message -->
+					<div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
+
+					<!-- Barbers Grid -->
+					<div id="barbersGrid" class="row" style="display: none;">
+						<!-- Barber cards will be inserted here -->
+					</div>
+				</div>
+
+				<!-- Calendar Step -->
+				<div id="calendarSelection" style="display: none;">
+					<button class="btn btn-secondary mb-3" onclick="goBackToBarberSelection()">
+						<i class="fas fa-arrow-left"></i> Berbere Geri Dön
+					</button>
+					<h2 class="text-center mb-4">Tarih Seçin - <span id="selectedBarberName"></span></h2>
+
+					<div class="row">
+						<div class="col-md-8">
+							<div class="card">
+								<div class="card-header d-flex justify-content-between align-items-center">
+									<button class="btn btn-outline-primary" onclick="previousMonth()">
+										<i class="fas fa-chevron-left"></i>
+									</button>
+									<h5 id="calendarTitle" class="mb-0"></h5>
+									<button class="btn btn-outline-primary" onclick="nextMonth()">
+										<i class="fas fa-chevron-right"></i>
+									</button>
+								</div>
+								<div class="card-body">
+									<div class="calendar">
+										<div class="calendar-header">
+											<div class="day-header">Pzt</div>
+											<div class="day-header">Sal</div>
+											<div class="day-header">Çar</div>
+											<div class="day-header">Per</div>
+											<div class="day-header">Cum</div>
+											<div class="day-header">Cmt</div>
+											<div class="day-header">Paz</div>
+										</div>
+										<div id="calendarDays" class="calendar-days">
+											<!-- Calendar days will be inserted here -->
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="card">
+								<div class="card-header">
+									<h5 class="mb-0">Müsait Saatler</h5>
+									<small id="selectedDateDisplay" class="text-muted"></small>
+								</div>
+								<div class="card-body">
+									<div id="availableHours">
+										<p class="text-muted">Lütfen bir tarih seçin</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<style>
+		.calendar {
+			width: 100%;
+		}
+
+		.calendar-header {
+			display: grid;
+			grid-template-columns: repeat(7, 1fr);
+			gap: 1px;
+			margin-bottom: 10px;
+		}
+
+		.day-header {
+			background-color: #f8f9fa;
+			padding: 10px;
+			text-align: center;
+			font-weight: bold;
+			border: 1px solid #dee2e6;
+		}
+
+		.calendar-days {
+			display: grid;
+			grid-template-columns: repeat(7, 1fr);
+			gap: 1px;
+		}
+
+		.calendar-day {
+			min-height: 60px;
+			padding: 8px;
+			border: 1px solid #dee2e6;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			cursor: pointer;
+			transition: background-color 0.2s;
+		}
+
+		.calendar-day:hover {
+			background-color: #e9ecef;
+		}
+
+		.calendar-day.other-month {
+			color: #6c757d;
+			background-color: #f8f9fa;
+		}
+
+		.calendar-day.today {
+			background-color: #fff3cd;
+			font-weight: bold;
+		}
+
+		.calendar-day.selected {
+			background-color: #007bff;
+			color: white;
+		}
+
+		.calendar-day.past {
+			color: #6c757d;
+			cursor: not-allowed;
+			background-color: #f8f9fa;
+		}
+
+		.hour-slot {
+			margin-bottom: 8px;
+		}
+
+		.hour-btn {
+			width: 100%;
+			text-align: left;
+		}
+	</style>
+
+	<script>
+		let currentMonth = new Date().getMonth();
+		let currentYear = new Date().getFullYear();
+		let selectedBarberId = null;
+		let selectedDate = null;
+		const monthNames = [
+			"Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+			"Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
+		];
+
+		async function checkUserAuthentication() {
+			try {
+				const response = await fetch('http://localhost:3000/profile/me', {
+					credentials: 'include'
+				});
+
+				return response.ok;
+			} catch (error) {
+				console.error('Authentication check failed:', error);
+				return false;
+			}
+		}
+
+		document.addEventListener('DOMContentLoaded', async function () {
+			// Check if user is authenticated before loading the page
+			const isAuthenticated = await checkUserAuthentication();
+			if (!isAuthenticated) {
+				// Redirect to login page if not authenticated
+				window.location.href = '/login';
+				return;
+			}
+
+			fetchBarbers();
+		});
+
+		async function fetchBarbers() {
+			const loading = document.getElementById('loading');
+			const errorMessage = document.getElementById('errorMessage');
+			const barbersGrid = document.getElementById('barbersGrid');
+
+			try {
+				const response = await fetch('http://localhost:3000/api/barbers/getBarbers');
+				const data = await response.json();
+
+				loading.style.display = 'none';
+
+				if (response.ok && data.length > 0) {
+					barbersGrid.style.display = 'block';
+					renderBarbers(data);
+				} else {
+					errorMessage.textContent = 'Berber bulunamadı.';
+					errorMessage.style.display = 'block';
+				}
+			} catch (error) {
+				loading.style.display = 'none';
+				errorMessage.textContent = 'Berberler yüklenirken bir hata oluştu.';
+				errorMessage.style.display = 'block';
+				console.error('Error fetching barbers:', error);
+			}
+		}
+
+		function renderBarbers(barbers) {
+			const barbersGrid = document.getElementById('barbersGrid');
+			barbersGrid.innerHTML = '';
+
+			barbers.forEach(barber => {
+				const barberCard = `
+				<div class="col-md-4 mb-4">
+					<div class="card h-100">
+						<div class="card-body text-center">
+							<h5 class="card-title">${barber.name} ${barber.surname}</h5>
+							<p class="card-text">
+								<i class="fas fa-phone"></i> ${barber.phoneNumber}
+							</p>
+							<button class="btn btn-primary" onclick="selectBarber('${barber._id}', '${barber.name} ${barber.surname}')">
+								Bu Berberi Seç
+							</button>
+						</div>
+					</div>
+				</div>
+			`;
+				barbersGrid.innerHTML += barberCard;
+			});
+		}
+
+		function selectBarber(barberId, barberName) {
+			selectedBarberId = barberId;
+			localStorage.setItem('selectedBarberId', barberId);
+			localStorage.setItem('selectedBarberName', barberName);
+
+			document.getElementById('selectedBarberName').textContent = barberName;
+			document.getElementById('barberSelection').style.display = 'none';
+			document.getElementById('calendarSelection').style.display = 'block';
+
+			generateCalendar();
+		}
+
+		function goBackToBarberSelection() {
+			document.getElementById('calendarSelection').style.display = 'none';
+			document.getElementById('barberSelection').style.display = 'block';
+			selectedBarberId = null;
+			selectedDate = null;
+		}
+
+		function generateCalendar() {
+			const calendarTitle = document.getElementById('calendarTitle');
+			const calendarDays = document.getElementById('calendarDays');
+
+			calendarTitle.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+
+			const firstDay = new Date(currentYear, currentMonth, 1);
+			const lastDay = new Date(currentYear, currentMonth + 1, 0);
+			const startDate = new Date(firstDay);
+			startDate.setDate(startDate.getDate() - (firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1));
+
+			calendarDays.innerHTML = '';
+
+			for (let i = 0; i < 42; i++) {
+				const date = new Date(startDate);
+				date.setDate(startDate.getDate() + i);
+
+				const dayDiv = document.createElement('div');
+				dayDiv.className = 'calendar-day';
+				dayDiv.textContent = date.getDate();
+
+				const today = new Date();
+				const isToday = date.toDateString() === today.toDateString();
+				const isPast = date < today.setHours(0, 0, 0, 0);
+				const isCurrentMonth = date.getMonth() === currentMonth;
+
+				if (isToday) dayDiv.classList.add('today');
+				if (isPast) dayDiv.classList.add('past');
+				if (!isCurrentMonth) dayDiv.classList.add('other-month');
+
+				if (!isPast && isCurrentMonth) {
+					dayDiv.onclick = () => selectDate(date);
+				}
+
+				calendarDays.appendChild(dayDiv);
+			}
+		}
+
+		function selectDate(date) {
+			selectedDate = date;
+
+			// Remove previous selection
+			document.querySelectorAll('.calendar-day').forEach(day => {
+				day.classList.remove('selected');
+			});
+
+			// Add selection to clicked day
+			event.target.classList.add('selected');
+
+			// Update selected date display
+			const selectedDateDisplay = document.getElementById('selectedDateDisplay');
+			selectedDateDisplay.textContent = date.toLocaleDateString('tr-TR');
+
+			// Fetch available hours
+			fetchAvailableHours(date);
+		}
+
+		async function fetchAvailableHours(date) {
+			const availableHours = document.getElementById('availableHours');
+			availableHours.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div></div>';
+
+			try {
+				// Fix timezone issue - format date as YYYY-MM-DD without timezone conversion
+				const year = date.getFullYear();
+				const month = String(date.getMonth() + 1).padStart(2, '0');
+				const day = String(date.getDate()).padStart(2, '0');
+				const dateStr = `${year}-${month}-${day}`;
+
+				const url = `http://localhost:3000/api/appointments/availability/${selectedBarberId}?date=${dateStr}`;
+				console.log('Fetching from URL:', url);
+
+				const response = await fetch(url);
+				const hours = await response.json();
+
+				console.log('Response status:', response.status);
+				console.log('Received hours:', hours);
+
+				if (response.ok && hours.length > 0) {
+					renderAvailableHours(hours);
+				} else {
+					availableHours.innerHTML = '<p class="text-muted">Bu tarihte müsait saat bulunmuyor.</p>';
+				}
+			} catch (error) {
+				availableHours.innerHTML = '<p class="text-danger">Saatler yüklenirken hata oluştu.</p>';
+				console.error('Error fetching available hours:', error);
+			}
+		}
+
+		function renderAvailableHours(hours) {
+			const availableHours = document.getElementById('availableHours');
+			availableHours.innerHTML = '';
+
+			console.log('Rendering hours:', hours);
+
+			hours.forEach(hour => {
+				const hourDate = new Date(hour);
+				// Use UTC time to avoid timezone conversion
+				const timeString = hourDate.getUTCHours().toString().padStart(2, '0') + ':' +
+					hourDate.getUTCMinutes().toString().padStart(2, '0');
+
+				console.log('Hour:', hour, 'Display as:', timeString);
+
+				const hourDiv = document.createElement('div');
+				hourDiv.className = 'hour-slot';
+				hourDiv.innerHTML = `
+					<button class="btn btn-outline-primary hour-btn" onclick="selectHour('${hour}', '${timeString}')">
+						${timeString}
+					</button>
+				`;
+
+				availableHours.appendChild(hourDiv);
+			});
+		}
+
+		function selectHour(hourISO, timeString) {
+			if (confirm(`${timeString} saatinde randevu oluşturulsun mu?`)) {
+				createAppointment(hourISO);
+			}
+		}
+
+		async function createAppointment(startTime) {
+			try {
+				const response = await fetch('http://localhost:3000/api/appointments', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					credentials: 'include',
+					body: JSON.stringify({
+						barberId: selectedBarberId,
+						startTime: startTime
+					})
+				});
+
+				const result = await response.json();
+
+				if (response.ok) {
+					alert('Randevu başarıyla oluşturuldu!');
+					// Refresh available hours
+					fetchAvailableHours(selectedDate);
+				} else if (response.status === 401) {
+					// User is not authenticated, redirect to login
+					alert('Oturum süreniz dolmuş. Giriş sayfasına yönlendiriliyorsunuz.');
+					window.location.href = '/login';
+				} else {
+					alert('Hata: ' + result.message);
+				}
+			} catch (error) {
+				alert('Randevu oluşturulurken hata oluştu.');
+				console.error('Error creating appointment:', error);
+			}
+		}
+
+		function previousMonth() {
+			currentMonth--;
+			if (currentMonth < 0) {
+				currentMonth = 11;
+				currentYear--;
+			}
+			generateCalendar();
+		}
+
+		function nextMonth() {
+			currentMonth++;
+			if (currentMonth > 11) {
+				currentMonth = 0;
+				currentYear++;
+			}
+			generateCalendar();
+		}
+	</script>
+
+	<%- include('partials/footer')%>

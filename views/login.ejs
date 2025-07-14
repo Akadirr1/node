@@ -1,0 +1,208 @@
+<%- include('partials/header')%>
+
+	<div class="container mt-5">
+		<div class="row justify-content-center">
+			<div class="col-md-6 col-lg-4">
+				<div class="card shadow">
+					<div class="card-header bg-primary text-white text-center">
+						<h4 class="mb-0">
+							<i class="fas fa-sign-in-alt"></i> Giriş Yap
+						</h4>
+					</div>
+					<div class="card-body">
+						<!-- Error Message -->
+						<div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
+
+						<!-- Success Message -->
+						<div id="successMessage" class="alert alert-success" style="display: none;"></div>
+
+						<!-- Login Form -->
+						<form id="loginForm">
+							<div class="mb-3">
+								<label for="phoneNumber" class="form-label">
+									<i class="fas fa-phone"></i> Telefon Numarası
+								</label>
+								<input type="tel" class="form-control" id="phoneNumber" name="phoneNumber"
+									placeholder="5551234567" required maxlength="11">
+								<div class="form-text">
+									Telefon numaranızı başında 0 olmadan giriniz
+								</div>
+							</div>
+
+							<div class="mb-3">
+								<label for="password" class="form-label">
+									<i class="fas fa-lock"></i> Şifre
+								</label>
+								<div class="input-group">
+									<input type="password" class="form-control" id="password" name="password"
+										placeholder="Şifrenizi giriniz" required minlength="6">
+									<button class="btn btn-outline-secondary" type="button" id="togglePassword">
+										<i class="fas fa-eye" id="eyeIcon"></i>
+									</button>
+								</div>
+							</div>
+
+							<div class="d-grid">
+								<button type="submit" class="btn btn-primary" id="loginBtn">
+									<span id="loginSpinner" class="spinner-border spinner-border-sm"
+										style="display: none;"></span>
+									<i class="fas fa-sign-in-alt" id="loginIcon"></i>
+									Giriş Yap
+								</button>
+							</div>
+						</form>
+
+						<hr>
+
+						<div class="text-center">
+							<p class="mb-0">Hesabınız yok mu?</p>
+							<a href="/register" class="btn btn-link">
+								<i class="fas fa-user-plus"></i> Kayıt Ol
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			const loginForm = document.getElementById('loginForm');
+			const phoneNumberInput = document.getElementById('phoneNumber');
+			const passwordInput = document.getElementById('password');
+			const togglePasswordBtn = document.getElementById('togglePassword');
+			const eyeIcon = document.getElementById('eyeIcon');
+			const loginBtn = document.getElementById('loginBtn');
+			const loginSpinner = document.getElementById('loginSpinner');
+			const loginIcon = document.getElementById('loginIcon');
+			const errorMessage = document.getElementById('errorMessage');
+			const successMessage = document.getElementById('successMessage');
+
+			// Toggle password visibility
+			togglePasswordBtn.addEventListener('click', function () {
+				const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+				passwordInput.setAttribute('type', type);
+
+				if (type === 'text') {
+					eyeIcon.classList.remove('fa-eye');
+					eyeIcon.classList.add('fa-eye-slash');
+				} else {
+					eyeIcon.classList.remove('fa-eye-slash');
+					eyeIcon.classList.add('fa-eye');
+				}
+			});
+
+			// Phone number input formatting
+			phoneNumberInput.addEventListener('input', function () {
+				let value = this.value.replace(/\D/g, ''); // Only numbers
+				if (value.startsWith('0')) {
+					value = value.substring(1); // Remove leading 0
+				}
+				this.value = value;
+			});
+
+			// Form submission
+			loginForm.addEventListener('submit', async function (e) {
+				e.preventDefault();
+
+				const phoneNumber = phoneNumberInput.value.trim();
+				const password = passwordInput.value.trim();
+
+				// Validation
+				if (phoneNumber.length < 10) {
+					showError('Telefon numarası en az 10 haneli olmalıdır.');
+					return;
+				}
+
+				if (password.length < 6) {
+					showError('Şifre en az 6 karakter olmalıdır.');
+					return;
+				}
+
+				// Show loading state
+				setLoading(true);
+				hideMessages();
+
+				try {
+					const response = await fetch('http://localhost:3000/profile/login/user', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							phoneNumber: phoneNumber,
+							password: password
+						})
+					});
+
+					const data = await response.json();
+
+					if (response.ok) {
+						// Login successful
+						showSuccess('Giriş başarılı! Yönlendiriliyorsunuz...');
+
+						// Store token and user info
+						if (data.token) {
+							localStorage.setItem('token', data.token);
+						}
+						if (data.user) {
+							localStorage.setItem('user', JSON.stringify(data.user));
+						}
+
+						// Redirect after 2 seconds
+						setTimeout(() => {
+							if (data.user && data.user.role === 'admin') {
+								window.location.href = '/admin-dashboard';
+							} else if (data.user && data.user.role === 'barber') {
+								window.location.href = '/barber-dashboard';
+							} else {
+								window.location.href = '/';
+							}
+						}, 2000);
+
+					} else {
+						// Login failed
+						showError(data.message || 'Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
+					}
+
+				} catch (error) {
+					console.error('Login error:', error);
+					showError('Bağlantı hatası. Lütfen daha sonra tekrar deneyin.');
+				} finally {
+					setLoading(false);
+				}
+			});
+
+			function setLoading(loading) {
+				if (loading) {
+					loginBtn.disabled = true;
+					loginSpinner.style.display = 'inline-block';
+					loginIcon.style.display = 'none';
+				} else {
+					loginBtn.disabled = false;
+					loginSpinner.style.display = 'none';
+					loginIcon.style.display = 'inline-block';
+				}
+			}
+
+			function showError(message) {
+				errorMessage.textContent = message;
+				errorMessage.style.display = 'block';
+				successMessage.style.display = 'none';
+			}
+
+			function showSuccess(message) {
+				successMessage.textContent = message;
+				successMessage.style.display = 'block';
+				errorMessage.style.display = 'none';
+			}
+
+			function hideMessages() {
+				errorMessage.style.display = 'none';
+				successMessage.style.display = 'none';
+			}
+		});
+	</script>
+
+	<%- include('partials/footer')%>

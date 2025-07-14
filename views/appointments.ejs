@@ -1,0 +1,188 @@
+<%- include('partials/header')%>
+
+	<div class="container mt-5">
+		<div class="row">
+			<div class="col-12">
+				<h2 class="text-center mb-4">Randevularım</h2>
+
+				<!-- Loading Spinner -->
+				<div id="loading" class="text-center">
+					<div class="spinner-border" role="status">
+						<span class="sr-only">Yükleniyor...</span>
+					</div>
+				</div>
+
+				<!-- Error Message -->
+				<div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
+
+				<!-- Appointments Container -->
+				<div id="appointmentsContainer" style="display: none;">
+					<div class="row" id="appointmentsList">
+						<!-- Appointments will be loaded here -->
+					</div>
+				</div>
+
+				<!-- No Appointments Message -->
+				<div id="noAppointments" class="text-center" style="display: none;">
+					<div class="alert alert-info">
+						<h5>Henüz randevunuz bulunmamaktadır.</h5>
+						<p>Randevu almak için <a href="/book" class="btn btn-primary">buraya tıklayın</a></p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			fetchAppointments();
+		});
+
+		async function fetchAppointments() {
+			const loading = document.getElementById('loading');
+			const errorMessage = document.getElementById('errorMessage');
+			const appointmentsContainer = document.getElementById('appointmentsContainer');
+			const noAppointments = document.getElementById('noAppointments');
+
+			try {
+				const response = await fetch('http://localhost:3000/profile/myAppointments', {
+					credentials: 'include'
+				});
+
+				loading.style.display = 'none';
+
+				if (response.ok) {
+					const data = await response.json();
+
+					if (data.Appointments && data.Appointments.length > 0) {
+						appointmentsContainer.style.display = 'block';
+						renderAppointments(data.Appointments);
+					} else {
+						noAppointments.style.display = 'block';
+					}
+				} else if (response.status === 401) {
+					window.location.href = '/login';
+				} else {
+					errorMessage.textContent = 'Randevular yüklenirken bir hata oluştu.';
+					errorMessage.style.display = 'block';
+				}
+			} catch (error) {
+				loading.style.display = 'none';
+				errorMessage.textContent = 'Randevular yüklenirken bir hata oluştu.';
+				errorMessage.style.display = 'block';
+				console.error('Error fetching appointments:', error);
+			}
+		}
+
+		function renderAppointments(appointments) {
+			const appointmentsList = document.getElementById('appointmentsList');
+			appointmentsList.innerHTML = '';
+
+			appointments.forEach(appointment => {
+				// UTC saatini direkt kullan - timezone conversion'ı kaldır
+				const startTime = new Date(appointment.startTime);
+				const endTime = new Date(appointment.endTime);
+
+				// UTC saatini direkt al
+				const startHour = startTime.getUTCHours().toString().padStart(2, '0');
+				const startMinute = startTime.getUTCMinutes().toString().padStart(2, '0');
+				const endHour = endTime.getUTCHours().toString().padStart(2, '0');
+				const endMinute = endTime.getUTCMinutes().toString().padStart(2, '0');
+
+				const timeString = `${startHour}:${startMinute} - ${endHour}:${endMinute}`;
+
+				const appointmentCard = `
+                <div class="col-lg-4 col-md-6 col-sm-12 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Randevu</h5>
+                            <p class="card-text">
+                                <i class="fas fa-calendar-alt"></i> 
+                                <strong>Tarih:</strong> ${startTime.toLocaleDateString('tr-TR')}
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-clock"></i> 
+                                <strong>Saat:</strong> ${timeString}
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-info-circle"></i> 
+                                <strong>Durum:</strong> 
+                                <span class="badge ${getStatusBadgeClass(appointment.status)}">
+                                    ${getStatusText(appointment.status)}
+                                </span>
+                            </p>
+                            ${canCancelAppointment(appointment.status) ?
+						`<button class="btn btn-danger btn-sm mt-2" onclick="cancelAppointment('${appointment._id}')">
+                                    <i class="fas fa-times"></i> İptal Et
+                                </button>` : ''
+					}
+                        </div>
+                        <div class="card-footer text-muted">
+                            <small>Oluşturulma: ${new Date(appointment.createdAt).toLocaleDateString('tr-TR')}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+				appointmentsList.innerHTML += appointmentCard;
+			});
+		}
+
+		function canCancelAppointment(status) {
+			// Only allow cancellation for scheduled and pending appointments
+			return status === 'scheduled' || status === 'pending';
+		}
+
+		async function cancelAppointment(appointmentId) {
+			if (!confirm('Bu randevuyu iptal etmek istediğinizden emin misiniz?')) {
+				return;
+			}
+
+			try {
+				const response = await fetch(`http://localhost:3000/profile/${appointmentId}`, {
+					method: 'DELETE',
+					credentials: 'include'
+				});
+
+				if (response.ok) {
+					alert('Randevu başarıyla iptal edildi.');
+					// Refresh the appointments list
+					fetchAppointments();
+				} else if (response.status === 401) {
+					window.location.href = '/login';
+				} else {
+					const errorData = await response.json();
+					alert('Hata: ' + (errorData.message || 'Randevu iptal edilirken bir hata oluştu.'));
+				}
+			} catch (error) {
+				alert('Randevu iptal edilirken bir hata oluştu.');
+				console.error('Error cancelling appointment:', error);
+			}
+		}
+
+		function getStatusBadgeClass(status) {
+			switch (status) {
+				case 'pending': return 'bg-warning';
+				case 'confirmed': return 'bg-success';
+				case 'completed': return 'bg-primary';
+				case 'cancelled': return 'bg-danger';
+				case 'cancelled_by_user': return 'bg-danger';
+				case 'cancelled_by_barber': return 'bg-danger';
+				case 'scheduled': return 'bg-info';
+				default: return 'bg-secondary';
+			}
+		}
+
+		function getStatusText(status) {
+			switch (status) {
+				case 'pending': return 'Beklemede';
+				case 'completed': return 'Tamamlandı';
+				case 'cancelled_by_user': return 'Kullanıcı Tarafından İptal Edildi';
+				case 'cancelled_by_barber': return 'brrber Tarafından İptal Edildi';
+				case 'scheduled': return 'Planlandı';
+				default: return 'Bilinmiyor';
+			}
+		}
+	</script>
+
+	<%- include('partials/footer')%>

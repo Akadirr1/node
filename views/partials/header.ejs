@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>
+		<%=title%>
+	</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+	<link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-lg bg-body-tertiary">
+		<div class="container">
+			<a class="navbar-brand" href="/"><img src="img/halka.png" alt="" width="50px"></a>
+			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02"
+				aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+					<li class="nav-item">
+						<a class="nav-link" aria-current="page" href="/">Anasayfa</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="/hakkimizda">Hakkımızda</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link " href="/book">Randevu Al</a>
+					</li>
+				</ul>
+				<!-- Logged out view -->
+				<ul class="navbar-nav ms-auto mb-2 mb-lg-0" id="logged-out-view" style="display: none;">
+					<li class="nav-item">
+						<a class="nav-link" href="/login">Giriş Yap</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="/register">Kayıt Ol</a>
+					</li>
+				</ul>
+				<!-- Logged in view -->
+				<ul class="navbar-nav ms-auto mb-2 mb-lg-0" id="logged-in-view" style="display: none;">
+					<li class="nav-item">
+						<a class="nav-link" id="user-name">Randevularım</a>
+
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="/Myappointments">Randevularım</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#" onclick="logoutUser(); return false;">Çıkış Yap</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+
+	</nav>
+
+	<script>
+		// Sayfa yüklendiğinde kullanıcı durumunu kontrol et
+		document.addEventListener('DOMContentLoaded', async function () {
+			await checkUserStatus();
+		});
+
+		async function checkUserStatus() {
+			try {
+				const response = await fetch('http://localhost:3000/profile/me', {
+					credentials: 'include'
+				});
+
+				if (response.ok) {
+					const userData = await response.json();
+					// Kullanıcı giriş yapmış
+					showLoggedInView(userData.name);
+				} else {
+					// Kullanıcı giriş yapmamış
+					showLoggedOutView();
+				}
+			} catch (error) {
+				console.error('Kullanıcı durumu kontrol edilirken hata:', error);
+				// Hata durumunda logout view göster
+				showLoggedOutView();
+			}
+		}
+
+		function showLoggedInView(userName) {
+			document.getElementById('logged-out-view').style.display = 'none';
+			document.getElementById('logged-in-view').style.display = 'flex';
+			document.getElementById('user-name').textContent = `Hoşgeldin, ${userName}`;
+		}
+
+		function showLoggedOutView() {
+			document.getElementById('logged-out-view').style.display = 'flex';
+			document.getElementById('logged-in-view').style.display = 'none';
+		}
+
+		async function logoutUser() {
+			try {
+				// Cookie'yi temizlemek için logout endpoint'i çağır
+				const response = await fetch('http://localhost:3000/profile/logout', {
+					method: 'POST',
+					credentials: 'include'
+				});
+
+				// Başarılı olsun ya da olmasın logout view'ı göster
+				showLoggedOutView();
+
+				// Ana sayfaya yönlendir
+				window.location.href = '/';
+			} catch (error) {
+				console.error('Çıkış yapılırken hata:', error);
+				// Hata durumunda da logout view göster
+				showLoggedOutView();
+				window.location.href = '/';
+			}
+		}
+	</script>

@@ -1,0 +1,13 @@
+body {
+  background-color: #282c34; /* Koyu bir arkaplan */
+  color: white; /* Beyaz yazı rengi */
+  font-family: sans-serif;
+  text-align: center;
+}
+
+h1 {
+  color: #61dafb; /* React mavisi gibi :) */
+}
+li{
+	  list-style: none;
+}
