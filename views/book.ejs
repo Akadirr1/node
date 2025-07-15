@@ -1,75 +1,73 @@
 <%- include('partials/header')%>
 
-	<div class="container mt-5">
-		<div class="row">
-			<div class="col-md-10 mx-auto">
-				<!-- Barber Selection Step -->
-				<div id="barberSelection">
-					<h2 class="text-center mb-4">Berber Seçin</h2>
+	<div class="booking-container">
+		<div class="container-fluid">
+			<!-- Barber Selection Step -->
+			<div id="barberSelection">
+				<h1 class="section-title">Our Barbers</h1>
 
-					<!-- Loading Spinner -->
-					<div id="loading" class="text-center">
-						<div class="spinner-border" role="status">
-							<span class="sr-only">Yükleniyor...</span>
-						</div>
-					</div>
-
-					<!-- Error Message -->
-					<div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
-
-					<!-- Barbers Grid -->
-					<div id="barbersGrid" class="row" style="display: none;">
-						<!-- Barber cards will be inserted here -->
+				<!-- Loading Spinner -->
+				<div id="loading" class="text-center">
+					<div class="spinner-border" role="status">
+						<span class="sr-only">Yükleniyor...</span>
 					</div>
 				</div>
 
-				<!-- Calendar Step -->
-				<div id="calendarSelection" style="display: none;">
-					<button class="btn btn-secondary mb-3" onclick="goBackToBarberSelection()">
-						<i class="fas fa-arrow-left"></i> Berbere Geri Dön
-					</button>
-					<h2 class="text-center mb-4">Tarih Seçin - <span id="selectedBarberName"></span></h2>
+				<!-- Error Message -->
+				<div id="errorMessage" class="error-message" style="display: none;"></div>
 
-					<div class="row">
-						<div class="col-md-8">
-							<div class="card">
-								<div class="card-header d-flex justify-content-between align-items-center">
-									<button class="btn btn-outline-primary" onclick="previousMonth()">
-										<i class="fas fa-chevron-left"></i>
-									</button>
-									<h5 id="calendarTitle" class="mb-0"></h5>
-									<button class="btn btn-outline-primary" onclick="nextMonth()">
-										<i class="fas fa-chevron-right"></i>
-									</button>
-								</div>
-								<div class="card-body">
-									<div class="calendar">
-										<div class="calendar-header">
-											<div class="day-header">Pzt</div>
-											<div class="day-header">Sal</div>
-											<div class="day-header">Çar</div>
-											<div class="day-header">Per</div>
-											<div class="day-header">Cum</div>
-											<div class="day-header">Cmt</div>
-											<div class="day-header">Paz</div>
-										</div>
-										<div id="calendarDays" class="calendar-days">
-											<!-- Calendar days will be inserted here -->
-										</div>
+				<!-- Barbers Grid -->
+				<div id="barbersGrid" class="barbers-grid" style="display: none;">
+					<!-- Barber cards will be inserted here -->
+				</div>
+			</div>
+
+			<!-- Calendar Step -->
+			<div id="calendarSelection" style="display: none;">
+				<button class="btn btn-secondary mb-3" onclick="goBackToBarberSelection()">
+					<i class="fas fa-arrow-left"></i> Berbere Geri Dön
+				</button>
+				<h2 class="text-center mb-4">Tarih Seçin - <span id="selectedBarberName"></span></h2>
+
+				<div class="row">
+					<div class="col-md-8">
+						<div class="card">
+							<div class="card-header d-flex justify-content-between align-items-center">
+								<button class="btn btn-outline-primary" onclick="previousMonth()">
+									<i class="fas fa-chevron-left"></i>
+								</button>
+								<h5 id="calendarTitle" class="mb-0"></h5>
+								<button class="btn btn-outline-primary" onclick="nextMonth()">
+									<i class="fas fa-chevron-right"></i>
+								</button>
+							</div>
+							<div class="card-body">
+								<div class="calendar">
+									<div class="calendar-header">
+										<div class="day-header">Pzt</div>
+										<div class="day-header">Sal</div>
+										<div class="day-header">Çar</div>
+										<div class="day-header">Per</div>
+										<div class="day-header">Cum</div>
+										<div class="day-header">Cmt</div>
+										<div class="day-header">Paz</div>
+									</div>
+									<div id="calendarDays" class="calendar-days">
+										<!-- Calendar days will be inserted here -->
 									</div>
 								</div>
 							</div>
 						</div>
-						<div class="col-md-4">
-							<div class="card">
-								<div class="card-header">
-									<h5 class="mb-0">Müsait Saatler</h5>
-									<small id="selectedDateDisplay" class="text-muted"></small>
-								</div>
-								<div class="card-body">
-									<div id="availableHours">
-										<p class="text-muted">Lütfen bir tarih seçin</p>
-									</div>
+					</div>
+					<div class="col-md-4">
+						<div class="card">
+							<div class="card-header">
+								<h5 class="mb-0">Müsait Saatler</h5>
+								<small id="selectedDateDisplay" class="text-muted"></small>
+							</div>
+							<div class="card-body">
+								<div id="availableHours">
+									<p class="text-muted">Lütfen bir tarih seçin</p>
 								</div>
 							</div>
 						</div>
@@ -80,6 +78,110 @@
 	</div>
 
 	<style>
+		.booking-container {
+			background-color: #1a1a1a;
+			min-height: 100vh;
+			padding: 60px 0;
+		}
+
+		.section-title {
+			color: #8bc34a;
+			font-size: 48px;
+			font-weight: 600;
+			text-align: left;
+			margin-bottom: 50px;
+			padding-left: 40px;
+		}
+
+		.barbers-grid {
+			display: flex;
+			flex-direction: row;
+			gap: 30px;
+			flex-wrap: wrap;
+			justify-content: flex-start;
+			align-items: stretch;
+			padding: 0 40px;
+			max-width: 1400px;
+			margin: 0 auto;
+		}
+
+		.barber-card {
+			background: #2d2d2d;
+			border-radius: 12px;
+			padding: 30px;
+			width: 400px;
+			min-width: 350px;
+			max-width: 450px;
+			flex: 1 1 auto;
+			text-align: center;
+			transition: transform 0.3s ease, box-shadow 0.3s ease;
+			border: 1px solid #4a4a4a;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+		}
+
+		.barber-card:hover {
+			transform: translateY(-5px);
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+		}
+
+		.barber-content {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			padding: 20px 0;
+		}
+
+		.barber-name {
+			color: #ffffff;
+			font-size: 28px;
+			font-weight: 600;
+			margin-bottom: 15px;
+		}
+
+		.barber-specialization {
+			color: #b0b0b0;
+			font-size: 16px;
+			line-height: 1.5;
+			margin-bottom: 20px;
+			text-align: center;
+		}
+
+		.book-now-btn {
+			background: #8bc34a;
+			color: #000000;
+			border: none;
+			padding: 12px 30px;
+			border-radius: 25px;
+			font-size: 16px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: background-color 0.3s ease;
+			width: 100%;
+			margin-top: auto;
+		}
+
+		.book-now-btn:hover {
+			background: #7cb342;
+		}
+
+		.error-message {
+			background: #ff4444;
+			color: white;
+			padding: 15px;
+			border-radius: 8px;
+			margin: 20px 40px;
+			text-align: center;
+		}
+
+		.spinner-border {
+			color: #8bc34a;
+		}
+
+		/* Calendar styles - keeping existing but updating colors */
 		.calendar {
 			width: 100%;
 		}
@@ -92,11 +194,12 @@
 		}
 
 		.day-header {
-			background-color: #f8f9fa;
+			background-color: #3a3a3a;
+			color: #ffffff;
 			padding: 10px;
 			text-align: center;
 			font-weight: bold;
-			border: 1px solid #dee2e6;
+			border: 1px solid #4a4a4a;
 		}
 
 		.calendar-days {
@@ -108,37 +211,40 @@
 		.calendar-day {
 			min-height: 60px;
 			padding: 8px;
-			border: 1px solid #dee2e6;
+			border: 1px solid #4a4a4a;
 			display: flex;
 			align-items: center;
 			justify-content: center;
 			cursor: pointer;
 			transition: background-color 0.2s;
+			background-color: #2d2d2d;
+			color: #ffffff;
 		}
 
 		.calendar-day:hover {
-			background-color: #e9ecef;
+			background-color: #3a3a3a;
 		}
 
 		.calendar-day.other-month {
 			color: #6c757d;
-			background-color: #f8f9fa;
+			background-color: #1a1a1a;
 		}
 
 		.calendar-day.today {
-			background-color: #fff3cd;
+			background-color: #8bc34a;
+			color: #000000;
 			font-weight: bold;
 		}
 
 		.calendar-day.selected {
-			background-color: #007bff;
-			color: white;
+			background-color: #8bc34a;
+			color: #000000;
 		}
 
 		.calendar-day.past {
 			color: #6c757d;
 			cursor: not-allowed;
-			background-color: #f8f9fa;
+			background-color: #1a1a1a;
 		}
 
 		.hour-slot {
@@ -148,6 +254,62 @@
 		.hour-btn {
 			width: 100%;
 			text-align: left;
+			background-color: #2d2d2d;
+			border: 1px solid #4a4a4a;
+			color: #ffffff;
+		}
+
+		.hour-btn:hover {
+			background-color: #8bc34a;
+			color: #000000;
+			border-color: #8bc34a;
+		}
+
+		/* Responsive design */
+		@media (max-width: 1400px) {
+			.barbers-grid {
+				justify-content: center;
+				max-width: 1200px;
+			}
+		}
+
+		@media (max-width: 1200px) {
+			.barbers-grid {
+				justify-content: center;
+				max-width: 900px;
+			}
+
+			.barber-card {
+				width: 350px;
+				min-width: 300px;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.section-title {
+				font-size: 36px;
+				text-align: center;
+				padding-left: 20px;
+			}
+
+			.barbers-grid {
+				flex-direction: column;
+				padding: 0 20px;
+				align-items: center;
+			}
+
+			.barber-card {
+				width: 100%;
+				max-width: 400px;
+				min-width: 300px;
+			}
+		}
+
+		@media (max-width: 480px) {
+			.barber-card {
+				min-width: 280px;
+				padding: 20px;
+			}
 		}
 	</style>
 
@@ -217,22 +379,22 @@
 			barbersGrid.innerHTML = '';
 
 			barbers.forEach(barber => {
-				const barberCard = `
-				<div class="col-md-4 mb-4">
-					<div class="card h-100">
-						<div class="card-body text-center">
-							<h5 class="card-title">${barber.name} ${barber.surname}</h5>
-							<p class="card-text">
-								<i class="fas fa-phone"></i> ${barber.phoneNumber}
-							</p>
-							<button class="btn btn-primary" onclick="selectBarber('${barber._id}', '${barber.name} ${barber.surname}')">
-								Bu Berberi Seç
-							</button>
-						</div>
+				// Create specialization text
+				const specialization = barber.specialization || 'Expert in classic cuts and styling.';
+
+				const barberCard = document.createElement('div');
+				barberCard.className = 'barber-card';
+				barberCard.innerHTML = `
+					<div class="barber-content">
+						<div class="barber-name">${barber.name}</div>
+						<div class="barber-specialization">${specialization}</div>
 					</div>
-				</div>
-			`;
-				barbersGrid.innerHTML += barberCard;
+					<button class="book-now-btn" onclick="selectBarber('${barber._id}', '${barber.name} ${barber.surname}')">
+						Book Now
+					</button>
+				`;
+
+				barbersGrid.appendChild(barberCard);
 			});
 		}
 

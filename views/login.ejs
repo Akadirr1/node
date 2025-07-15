@@ -1,97 +1,206 @@
 <%- include('partials/header')%>
 
-	<div class="container mt-5">
-		<div class="row justify-content-center">
-			<div class="col-md-6 col-lg-4">
-				<div class="card shadow">
-					<div class="card-header bg-primary text-white text-center">
-						<h4 class="mb-0">
-							<i class="fas fa-sign-in-alt"></i> Giriş Yap
-						</h4>
-					</div>
-					<div class="card-body">
-						<!-- Error Message -->
-						<div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
+	<div class="login-container">
+		<div class="login-card">
+			<h1 class="login-title">Welcome back</h1>
 
-						<!-- Success Message -->
-						<div id="successMessage" class="alert alert-success" style="display: none;"></div>
+			<!-- Error Message -->
+			<div id="errorMessage" class="error-message" style="display: none;"></div>
 
-						<!-- Login Form -->
-						<form id="loginForm">
-							<div class="mb-3">
-								<label for="phoneNumber" class="form-label">
-									<i class="fas fa-phone"></i> Telefon Numarası
-								</label>
-								<input type="tel" class="form-control" id="phoneNumber" name="phoneNumber"
-									placeholder="5551234567" required maxlength="11">
-								<div class="form-text">
-									Telefon numaranızı başında 0 olmadan giriniz
-								</div>
-							</div>
+			<!-- Success Message -->
+			<div id="successMessage" class="success-message" style="display: none;"></div>
 
-							<div class="mb-3">
-								<label for="password" class="form-label">
-									<i class="fas fa-lock"></i> Şifre
-								</label>
-								<div class="input-group">
-									<input type="password" class="form-control" id="password" name="password"
-										placeholder="Şifrenizi giriniz" required minlength="6">
-									<button class="btn btn-outline-secondary" type="button" id="togglePassword">
-										<i class="fas fa-eye" id="eyeIcon"></i>
-									</button>
-								</div>
-							</div>
-
-							<div class="d-grid">
-								<button type="submit" class="btn btn-primary" id="loginBtn">
-									<span id="loginSpinner" class="spinner-border spinner-border-sm"
-										style="display: none;"></span>
-									<i class="fas fa-sign-in-alt" id="loginIcon"></i>
-									Giriş Yap
-								</button>
-							</div>
-						</form>
-
-						<hr>
-
-						<div class="text-center">
-							<p class="mb-0">Hesabınız yok mu?</p>
-							<a href="/register" class="btn btn-link">
-								<i class="fas fa-user-plus"></i> Kayıt Ol
-							</a>
-						</div>
-					</div>
+			<!-- Login Form -->
+			<form id="loginForm">
+				<div class="form-group">
+					<label for="phoneNumber" class="form-label">Telefon numarası</label>
+					<input type="tel" class="form-input" id="phoneNumber" name="phoneNumber"
+						placeholder="Enter your phone number" required maxlength="11">
 				</div>
+
+				<div class="form-group">
+					<label for="password" class="form-label">Password</label>
+					<input type="password" class="form-input" id="password" name="password"
+						placeholder="Enter your password" required minlength="6">
+				</div>
+
+				<div class="forgot-password">
+					<a href="#" class="forgot-link">Forgot your password?</a>
+				</div>
+
+				<button type="submit" class="login-button" id="loginBtn">
+					<span id="loginSpinner" class="spinner" style="display: none;"></span>
+					Log In
+				</button>
+			</form>
+
+			<div class="signup-link">
+				<span>Don't have an account? </span>
+				<a href="/register" class="signup-text">Sign up</a>
 			</div>
 		</div>
 	</div>
+
+	<style>
+		.login-container {
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background-color: #1a1a1a;
+			padding: 20px;
+		}
+
+		.login-card {
+			background: #2d2d2d;
+			border-radius: 8px;
+			padding: 40px;
+			width: 100%;
+			max-width: 400px;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		}
+
+		.login-title {
+			color: #ffffff;
+			font-size: 32px;
+			font-weight: 400;
+			text-align: center;
+			margin-bottom: 40px;
+			margin-top: 0;
+		}
+
+		.form-group {
+			margin-bottom: 20px;
+		}
+
+		.form-label {
+			color: #b0b0b0;
+			font-size: 14px;
+			display: block;
+			margin-bottom: 8px;
+		}
+
+		.form-input {
+			width: 100%;
+			padding: 12px 16px;
+			background: #3a3a3a;
+			border: 1px solid #4a4a4a;
+			border-radius: 6px;
+			color: #ffffff;
+			font-size: 16px;
+			transition: border-color 0.3s ease;
+			box-sizing: border-box;
+		}
+
+		.form-input:focus {
+			outline: none;
+			border-color: #8bc34a;
+		}
+
+		.form-input::placeholder {
+			color: #7a7a7a;
+		}
+
+		.forgot-password {
+			text-align: left;
+			margin-bottom: 30px;
+		}
+
+		.forgot-link {
+			color: #8bc34a;
+			text-decoration: none;
+			font-size: 14px;
+		}
+
+		.forgot-link:hover {
+			text-decoration: underline;
+			color: #8bc34a;
+		}
+
+		.login-button {
+			width: 100%;
+			padding: 14px;
+			background: #8bc34a;
+			border: none;
+			border-radius: 50px;
+			color: #000000;
+			font-size: 16px;
+			font-weight: 500;
+			cursor: pointer;
+			transition: background-color 0.3s ease;
+			margin-bottom: 30px;
+		}
+
+		.login-button:hover {
+			background: #7cb342;
+		}
+
+		.login-button:disabled {
+			background: #6a6a6a;
+			cursor: not-allowed;
+		}
+
+		.signup-link {
+			text-align: center;
+			color: #b0b0b0;
+			font-size: 14px;
+		}
+
+		.signup-text {
+			color: #8bc34a;
+			text-decoration: none;
+		}
+
+		.signup-text:hover {
+			text-decoration: underline;
+			color: #8bc34a;
+		}
+
+		.error-message {
+			background: #ff4444;
+			color: white;
+			padding: 12px;
+			border-radius: 6px;
+			margin-bottom: 20px;
+			font-size: 14px;
+		}
+
+		.success-message {
+			background: #8bc34a;
+			color: black;
+			padding: 12px;
+			border-radius: 6px;
+			margin-bottom: 20px;
+			font-size: 14px;
+		}
+
+		.spinner {
+			display: inline-block;
+			width: 16px;
+			height: 16px;
+			border: 2px solid #ffffff;
+			border-radius: 50%;
+			border-top-color: transparent;
+			animation: spin 1s ease-in-out infinite;
+			margin-right: 8px;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+	</style>
 
 	<script>
 		document.addEventListener('DOMContentLoaded', function () {
 			const loginForm = document.getElementById('loginForm');
 			const phoneNumberInput = document.getElementById('phoneNumber');
 			const passwordInput = document.getElementById('password');
-			const togglePasswordBtn = document.getElementById('togglePassword');
-			const eyeIcon = document.getElementById('eyeIcon');
 			const loginBtn = document.getElementById('loginBtn');
 			const loginSpinner = document.getElementById('loginSpinner');
-			const loginIcon = document.getElementById('loginIcon');
 			const errorMessage = document.getElementById('errorMessage');
 			const successMessage = document.getElementById('successMessage');
-
-			// Toggle password visibility
-			togglePasswordBtn.addEventListener('click', function () {
-				const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-				passwordInput.setAttribute('type', type);
-
-				if (type === 'text') {
-					eyeIcon.classList.remove('fa-eye');
-					eyeIcon.classList.add('fa-eye-slash');
-				} else {
-					eyeIcon.classList.remove('fa-eye-slash');
-					eyeIcon.classList.add('fa-eye');
-				}
-			});
 
 			// Phone number input formatting
 			phoneNumberInput.addEventListener('input', function () {
@@ -178,11 +287,11 @@
 				if (loading) {
 					loginBtn.disabled = true;
 					loginSpinner.style.display = 'inline-block';
-					loginIcon.style.display = 'none';
+					loginBtn.textContent = 'Giriş yapılıyor...';
 				} else {
 					loginBtn.disabled = false;
 					loginSpinner.style.display = 'none';
-					loginIcon.style.display = 'inline-block';
+					loginBtn.innerHTML = 'Log In';
 				}
 			}
 

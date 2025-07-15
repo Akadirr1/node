@@ -1,13 +1,146 @@
 body {
-  background-color: #282c34; /* Koyu bir arkaplan */
-  color: white; /* Beyaz yazı rengi */
-  font-family: sans-serif;
-  text-align: center;
+	background-color: #1a1a1a;
+	/* Dark background */
+	color: #ffffff;
+	/* White text */
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	margin: 0;
+	padding: 0;
+	min-height: 100vh;
 }
 
-h1 {
-  color: #61dafb; /* React mavisi gibi :) */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	color: #ffffff;
 }
-li{
-	  list-style: none;
+
+/* Link styles */
+a {
+	color: #8bc34a;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #7cb342;
+	text-decoration: underline;
+}
+
+/* List styles */
+li {
+	list-style: none;
+}
+
+/* Card styles for consistency */
+.card {
+	background-color: #2d2d2d;
+	border: 1px solid #4a4a4a;
+	color: #ffffff;
+}
+
+.card-header {
+	background-color: #3a3a3a;
+	border-bottom: 1px solid #4a4a4a;
+	color: #ffffff;
+}
+
+/* Button styles */
+.btn-primary {
+	background-color: #8bc34a;
+	border-color: #8bc34a;
+	color: #000000;
+}
+
+.btn-primary:hover {
+	background-color: #7cb342;
+	border-color: #7cb342;
+	color: #000000;
+}
+
+.btn-success {
+	background-color: #8bc34a;
+	border-color: #8bc34a;
+	color: #000000;
+}
+
+.btn-success:hover {
+	background-color: #7cb342;
+	border-color: #7cb342;
+	color: #000000;
+}
+
+/* Form styles */
+.form-control {
+	background-color: #3a3a3a;
+	border: 1px solid #4a4a4a;
+	color: #ffffff;
+}
+
+.form-control:focus {
+	background-color: #3a3a3a;
+	border-color: #8bc34a;
+	box-shadow: 0 0 0 0.25rem rgba(139, 195, 74, 0.25);
+	color: #ffffff;
+}
+
+.form-control::placeholder {
+	color: #7a7a7a;
+}
+
+.form-label {
+	color: #b0b0b0;
+}
+
+/* Alert styles */
+.alert-danger {
+	background-color: #ff4444;
+	border-color: #ff3333;
+	color: #ffffff;
+}
+
+.alert-success {
+	background-color: #8bc34a;
+	border-color: #7cb342;
+	color: #000000;
+}
+
+/* Table styles */
+.table-dark {
+	background-color: #2d2d2d;
+}
+
+/* Modal styles */
+.modal-content {
+	background-color: #2d2d2d;
+	color: #ffffff;
+	border: 1px solid #4a4a4a;
+}
+
+.modal-header {
+	border-bottom: 1px solid #4a4a4a;
+}
+
+.modal-footer {
+	border-top: 1px solid #4a4a4a;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+	width: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #4a4a4a;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #6a6a6a;
 }

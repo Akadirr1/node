@@ -28,12 +28,10 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.get('/', async(req, res) => {
 	const pagetitle = "dinamik baslik";
-	const kullanicilar = await User.find({});
 
 
-	res.render('index', {
+	res.render('book', {
 		title: pagetitle,
-		users: kullanicilar
 	});
 })
 app.get('/hakkimizda', (req, res) => {

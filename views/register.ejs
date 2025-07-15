@@ -1,110 +1,66 @@
 <%- include('partials/header')%>
 
-	<div class="container mt-5">
-		<div class="row justify-content-center">
-			<div class="col-md-8 col-lg-6">
-				<div class="card shadow">
-					<div class="card-header bg-success text-white text-center">
-						<h4 class="mb-0">
-							<i class="fas fa-user-plus"></i> Kayıt Ol
-						</h4>
+	<div class="register-container">
+		<div class="register-card">
+			<h1 class="register-title">Create Account</h1>
+
+			<!-- Error Message -->
+			<div id="errorMessage" class="error-message" style="display: none;"></div>
+
+			<!-- Success Message -->
+			<div id="successMessage" class="success-message" style="display: none;"></div>
+
+			<!-- Register Form -->
+			<form id="registerForm">
+				<div class="form-row">
+					<div class="form-group form-group-half">
+						<label for="name" class="form-label">Ad</label>
+						<input type="text" class="form-input" id="name" name="name" placeholder="Enter your first name"
+							required minlength="2" maxlength="50">
 					</div>
-					<div class="card-body">
-						<!-- Error Message -->
-						<div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
 
-						<!-- Success Message -->
-						<div id="successMessage" class="alert alert-success" style="display: none;"></div>
-
-						<!-- Register Form -->
-						<form id="registerForm">
-							<div class="row">
-								<div class="col-md-6 mb-3">
-									<label for="name" class="form-label">
-										<i class="fas fa-user"></i> Ad
-									</label>
-									<input type="text" class="form-control" id="name" name="name"
-										placeholder="Adınızı giriniz" required minlength="2" maxlength="50">
-								</div>
-
-								<div class="col-md-6 mb-3">
-									<label for="surname" class="form-label">
-										<i class="fas fa-user"></i> Soyad
-									</label>
-									<input type="text" class="form-control" id="surname" name="surname"
-										placeholder="Soyadınızı giriniz" required minlength="2" maxlength="50">
-								</div>
-							</div>
-
-							<div class="mb-3">
-								<label for="phoneNumber" class="form-label">
-									<i class="fas fa-phone"></i> Telefon Numarası
-								</label>
-								<input type="tel" class="form-control" id="phoneNumber" name="phoneNumber"
-									placeholder="5551234567" required maxlength="11">
-								<div class="form-text">
-									Telefon numaranızı başında 0 olmadan giriniz (10-11 hane)
-								</div>
-							</div>
-
-							<div class="mb-3">
-								<label for="password" class="form-label">
-									<i class="fas fa-lock"></i> Şifre
-								</label>
-								<div class="input-group">
-									<input type="password" class="form-control" id="password" name="password"
-										placeholder="Şifrenizi giriniz" required minlength="6">
-									<button class="btn btn-outline-secondary" type="button" id="togglePassword">
-										<i class="fas fa-eye" id="eyeIcon"></i>
-									</button>
-								</div>
-								<div class="form-text">
-									Şifreniz en az 6 karakter olmalıdır
-								</div>
-							</div>
-
-							<div class="mb-3">
-								<label for="confirmPassword" class="form-label">
-									<i class="fas fa-lock"></i> Şifre Tekrar
-								</label>
-								<div class="input-group">
-									<input type="password" class="form-control" id="confirmPassword"
-										name="confirmPassword" placeholder="Şifrenizi tekrar giriniz" required
-										minlength="6">
-									<button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
-										<i class="fas fa-eye" id="eyeIcon2"></i>
-									</button>
-								</div>
-							</div>
-
-							<div class="mb-3 form-check">
-								<input type="checkbox" class="form-check-input" id="termsCheck" required>
-								<label class="form-check-label" for="termsCheck">
-									<a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Kullanım
-										şartlarını</a> kabul ediyorum
-								</label>
-							</div>
-
-							<div class="d-grid">
-								<button type="submit" class="btn btn-success" id="registerBtn">
-									<span id="registerSpinner" class="spinner-border spinner-border-sm"
-										style="display: none;"></span>
-									<i class="fas fa-user-plus" id="registerIcon"></i>
-									Kayıt Ol
-								</button>
-							</div>
-						</form>
-
-						<hr>
-
-						<div class="text-center">
-							<p class="mb-0">Zaten hesabınız var mı?</p>
-							<a href="/login" class="btn btn-link">
-								<i class="fas fa-sign-in-alt"></i> Giriş Yap
-							</a>
-						</div>
+					<div class="form-group form-group-half">
+						<label for="surname" class="form-label">Soyad</label>
+						<input type="text" class="form-input" id="surname" name="surname"
+							placeholder="Enter your last name" required minlength="2" maxlength="50">
 					</div>
 				</div>
+
+				<div class="form-group">
+					<label for="phoneNumber" class="form-label">Telefon numarası</label>
+					<input type="tel" class="form-input" id="phoneNumber" name="phoneNumber"
+						placeholder="Enter your phone number" required maxlength="11">
+				</div>
+
+				<div class="form-group">
+					<label for="password" class="form-label">Password</label>
+					<input type="password" class="form-input" id="password" name="password"
+						placeholder="Enter your password" required minlength="6">
+				</div>
+
+				<div class="form-group">
+					<label for="confirmPassword" class="form-label">Confirm Password</label>
+					<input type="password" class="form-input" id="confirmPassword" name="confirmPassword"
+						placeholder="Confirm your password" required minlength="6">
+				</div>
+
+				<div class="form-group checkbox-group">
+					<label class="checkbox-label">
+						<input type="checkbox" class="form-checkbox" id="termsCheck" required>
+						<span class="checkbox-text">I agree to the <a href="#" class="terms-link" data-bs-toggle="modal"
+								data-bs-target="#termsModal">Terms of Service</a></span>
+					</label>
+				</div>
+
+				<button type="submit" class="register-button" id="registerBtn">
+					<span id="registerSpinner" class="spinner" style="display: none;"></span>
+					Sign Up
+				</button>
+			</form>
+
+			<div class="login-link">
+				<span>Already have an account? </span>
+				<a href="/login" class="login-text">Log in</a>
 			</div>
 		</div>
 	</div>
@@ -112,10 +68,11 @@
 	<!-- Terms Modal -->
 	<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
 		<div class="modal-dialog modal-lg">
-			<div class="modal-content">
+			<div class="modal-content bg-dark text-white">
 				<div class="modal-header">
 					<h5 class="modal-title" id="termsModalLabel">Kullanım Şartları</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+						aria-label="Close"></button>
 				</div>
 				<div class="modal-body">
 					<h6>1. Genel Kullanım</h6>
@@ -134,6 +91,225 @@
 		</div>
 	</div>
 
+	<style>
+		.register-container {
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background-color: #1a1a1a;
+			padding: 20px;
+		}
+
+		.register-card {
+			background: #2d2d2d;
+			border-radius: 8px;
+			padding: 40px;
+			width: 100%;
+			max-width: 450px;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		}
+
+		.register-title {
+			color: #ffffff;
+			font-size: 32px;
+			font-weight: 400;
+			text-align: center;
+			margin-bottom: 40px;
+			margin-top: 0;
+		}
+
+		.form-row {
+			display: flex;
+			gap: 15px;
+			margin-bottom: 20px;
+		}
+
+		.form-group {
+			margin-bottom: 20px;
+		}
+
+		.form-group-half {
+			flex: 1;
+			margin-bottom: 0;
+		}
+
+		.form-label {
+			color: #b0b0b0;
+			font-size: 14px;
+			display: block;
+			margin-bottom: 8px;
+		}
+
+		.form-input {
+			width: 100%;
+			padding: 12px 16px;
+			background: #3a3a3a;
+			border: 1px solid #4a4a4a;
+			border-radius: 6px;
+			color: #ffffff;
+			font-size: 16px;
+			transition: border-color 0.3s ease;
+			box-sizing: border-box;
+		}
+
+		.form-input:focus {
+			outline: none;
+			border-color: #8bc34a;
+		}
+
+		.form-input::placeholder {
+			color: #7a7a7a;
+		}
+
+		.form-input.is-invalid {
+			border-color: #ff4444;
+		}
+
+		.form-input.is-valid {
+			border-color: #8bc34a;
+		}
+
+		.checkbox-group {
+			margin-bottom: 30px;
+		}
+
+		.checkbox-label {
+			display: flex;
+			align-items: flex-start;
+			cursor: pointer;
+			color: #b0b0b0;
+			font-size: 14px;
+			line-height: 1.5;
+		}
+
+		.form-checkbox {
+			width: 18px;
+			height: 18px;
+			margin-right: 10px;
+			margin-top: 2px;
+			accent-color: #8bc34a;
+			flex-shrink: 0;
+		}
+
+		.checkbox-text {
+			flex: 1;
+		}
+
+		.terms-link {
+			color: #8bc34a;
+			text-decoration: none;
+		}
+
+		.terms-link:hover {
+			text-decoration: underline;
+			color: #8bc34a;
+		}
+
+		.register-button {
+			width: 100%;
+			padding: 14px;
+			background: #8bc34a;
+			border: none;
+			border-radius: 50px;
+			color: #000000;
+			font-size: 16px;
+			font-weight: 500;
+			cursor: pointer;
+			transition: background-color 0.3s ease;
+			margin-bottom: 30px;
+		}
+
+		.register-button:hover {
+			background: #7cb342;
+		}
+
+		.register-button:disabled {
+			background: #6a6a6a;
+			cursor: not-allowed;
+		}
+
+		.login-link {
+			text-align: center;
+			color: #b0b0b0;
+			font-size: 14px;
+		}
+
+		.login-text {
+			color: #8bc34a;
+			text-decoration: none;
+		}
+
+		.login-text:hover {
+			text-decoration: underline;
+			color: #8bc34a;
+		}
+
+		.error-message {
+			background: #ff4444;
+			color: white;
+			padding: 12px;
+			border-radius: 6px;
+			margin-bottom: 20px;
+			font-size: 14px;
+		}
+
+		.success-message {
+			background: #8bc34a;
+			color: black;
+			padding: 12px;
+			border-radius: 6px;
+			margin-bottom: 20px;
+			font-size: 14px;
+		}
+
+		.spinner {
+			display: inline-block;
+			width: 16px;
+			height: 16px;
+			border: 2px solid #ffffff;
+			border-radius: 50%;
+			border-top-color: transparent;
+			animation: spin 1s ease-in-out infinite;
+			margin-right: 8px;
+		}
+
+		@keyframes spin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		/* Modal dark theme */
+		.modal-content.bg-dark {
+			background-color: #2d2d2d !important;
+			border: 1px solid #4a4a4a;
+		}
+
+		.modal-content.bg-dark .modal-header {
+			border-bottom: 1px solid #4a4a4a;
+		}
+
+		.modal-content.bg-dark .modal-footer {
+			border-top: 1px solid #4a4a4a;
+		}
+
+		@media (max-width: 480px) {
+			.form-row {
+				flex-direction: column;
+				gap: 0;
+			}
+
+			.form-group-half {
+				margin-bottom: 20px;
+			}
+
+			.register-card {
+				padding: 30px 20px;
+			}
+		}
+	</style>
+
 	<script>
 		document.addEventListener('DOMContentLoaded', function () {
 			const registerForm = document.getElementById('registerForm');
@@ -142,38 +318,11 @@
 			const phoneNumberInput = document.getElementById('phoneNumber');
 			const passwordInput = document.getElementById('password');
 			const confirmPasswordInput = document.getElementById('confirmPassword');
-			const togglePasswordBtn = document.getElementById('togglePassword');
-			const toggleConfirmPasswordBtn = document.getElementById('toggleConfirmPassword');
-			const eyeIcon = document.getElementById('eyeIcon');
-			const eyeIcon2 = document.getElementById('eyeIcon2');
 			const registerBtn = document.getElementById('registerBtn');
 			const registerSpinner = document.getElementById('registerSpinner');
-			const registerIcon = document.getElementById('registerIcon');
 			const errorMessage = document.getElementById('errorMessage');
 			const successMessage = document.getElementById('successMessage');
 			const termsCheck = document.getElementById('termsCheck');
-
-			// Toggle password visibility
-			togglePasswordBtn.addEventListener('click', function () {
-				togglePasswordVisibility(passwordInput, eyeIcon);
-			});
-
-			toggleConfirmPasswordBtn.addEventListener('click', function () {
-				togglePasswordVisibility(confirmPasswordInput, eyeIcon2);
-			});
-
-			function togglePasswordVisibility(input, icon) {
-				const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-				input.setAttribute('type', type);
-
-				if (type === 'text') {
-					icon.classList.remove('fa-eye');
-					icon.classList.add('fa-eye-slash');
-				} else {
-					icon.classList.remove('fa-eye-slash');
-					icon.classList.add('fa-eye');
-				}
-			}
 
 			// Name and surname input formatting (only letters)
 			[nameInput, surnameInput].forEach(input => {
@@ -196,10 +345,29 @@
 				if (passwordInput.value !== this.value) {
 					this.setCustomValidity('Şifreler eşleşmiyor');
 					this.classList.add('is-invalid');
+					this.classList.remove('is-valid');
 				} else {
 					this.setCustomValidity('');
 					this.classList.remove('is-invalid');
 					this.classList.add('is-valid');
+				}
+			});
+
+			// Password input validation styling
+			passwordInput.addEventListener('input', function () {
+				if (this.value.length >= 6) {
+					this.classList.add('is-valid');
+					this.classList.remove('is-invalid');
+				} else {
+					this.classList.remove('is-valid');
+					if (this.value.length > 0) {
+						this.classList.add('is-invalid');
+					}
+				}
+
+				// Re-validate confirm password
+				if (confirmPasswordInput.value.length > 0) {
+					confirmPasswordInput.dispatchEvent(new Event('input'));
 				}
 			});
 
@@ -270,6 +438,10 @@
 
 						// Reset form
 						registerForm.reset();
+						// Remove validation classes
+						document.querySelectorAll('.is-valid, .is-invalid').forEach(el => {
+							el.classList.remove('is-valid', 'is-invalid');
+						});
 
 						// Redirect to login page after 3 seconds
 						setTimeout(() => {
@@ -293,11 +465,11 @@
 				if (loading) {
 					registerBtn.disabled = true;
 					registerSpinner.style.display = 'inline-block';
-					registerIcon.style.display = 'none';
+					registerBtn.innerHTML = '<span class="spinner"></span>Kayıt yapılıyor...';
 				} else {
 					registerBtn.disabled = false;
 					registerSpinner.style.display = 'none';
-					registerIcon.style.display = 'inline-block';
+					registerBtn.innerHTML = 'Sign Up';
 				}
 			}
 
