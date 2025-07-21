@@ -220,8 +220,26 @@ const createAppointment = async (req, res) => {
 
 	}
 }
+const getMyBarberAppointments = async (req, res) => {
+	try {
+		const barberId = req.user.id;
+		const appointment = await Appointment.find({
+			barber: barberId,
+			status: 'scheduled',
+			startTime: { $gte: new Date() }
+		})
+			.populate('customer', 'name surname')
+			.populate('service', 'name duration')
+			.sort({ startTime: 'asc' });
+		res.status(200).json(appointment);
 
+	} catch (error) {
+		console.error("Berber randevuları getirilirken hata:", error);
+		res.status(500).json({ message: 'Randevular getirilirken bir sunucu hatası oluştu.' });
+	}
+}
 module.exports = {
 	getAvailableSlots,
-	createAppointment
+	createAppointment,
+	getMyBarberAppointments
 }

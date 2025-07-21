@@ -72,6 +72,11 @@ app.get('/register', (req, res) => {
 		title: pagetitle
 	});
 })
+app.get('/barber-dashboard',(req,res)=>{
+	res.render('barber-dashboard',{
+		title: "Yönetim Paneli"
+	})
+})
 app.use('/api/services',serviceRoutes);
 app.use('/profile', userRoutes);
 app.use('/api/barbers',barberRoutes);
