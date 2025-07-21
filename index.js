@@ -5,6 +5,7 @@ const app = express();
 const userRoutes = require('./routes/userRoutes');
 const barberRoutes = require('./routes/barberRoutes');
 const appointmentRoutes= require('./routes/appointmentRoutes');
+const serviceRoutes = require('./routes/serviceRoutes');
 const port = 3000;
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -28,10 +29,12 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.get('/', async(req, res) => {
 	const pagetitle = "dinamik baslik";
+	const kullanicilar = await User.find({});
 
 
-	res.render('book', {
+	res.render('index', {
 		title: pagetitle,
+		users: kullanicilar
 	});
 })
 app.get('/hakkimizda', (req, res) => {
@@ -69,6 +72,7 @@ app.get('/register', (req, res) => {
 		title: pagetitle
 	});
 })
+app.use('/api/services',serviceRoutes);
 app.use('/profile', userRoutes);
 app.use('/api/barbers',barberRoutes);
 app.use('/api/appointments',appointmentRoutes);
