@@ -46,8 +46,17 @@
 					<li class="nav-item">
 						<a class="nav-link welcome-text" id="user-name">Hoşgeldin</a>
 					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="/Myappointments">Randevularım</a>
+					<!-- Customer Menu -->
+					<li class="nav-item" id="customer-menu" style="display: none;">
+						<a class="nav-link" href="/myAppointments">Randevularım</a>
+					</li>
+					<!-- Barber Menu -->
+					<li class="nav-item" id="barber-menu" style="display: none;">
+						<a class="nav-link" href="/barber-dashboard">Yönetim Paneli</a>
+					</li>
+					<!-- Admin Menu -->
+					<li class="nav-item" id="admin-menu" style="display: none;">
+						<a class="nav-link" href="/admin-dashboard">Tüm Randevular</a>
 					</li>
 					<li class="nav-item">
 						<a class="nav-link logout-btn" href="#" onclick="logoutUser(); return false;">Çıkış Yap</a>
@@ -182,7 +191,7 @@
 				if (response.ok) {
 					const userData = await response.json();
 					// Kullanıcı giriş yapmış
-					showLoggedInView(userData.name);
+					showLoggedInView(userData.name, userData.role);
 				} else {
 					// Kullanıcı giriş yapmamış
 					showLoggedOutView();
@@ -194,10 +203,24 @@
 			}
 		}
 
-		function showLoggedInView(userName) {
+		function showLoggedInView(userName, userRole) {
 			document.getElementById('logged-out-view').style.display = 'none';
 			document.getElementById('logged-in-view').style.display = 'flex';
 			document.getElementById('user-name').textContent = `Hoşgeldin, ${userName}`;
+
+			// Hide all role-specific menus first
+			document.getElementById('customer-menu').style.display = 'none';
+			document.getElementById('barber-menu').style.display = 'none';
+			document.getElementById('admin-menu').style.display = 'none';
+
+			// Show appropriate menu based on user role
+			if (userRole === 'customer') {
+				document.getElementById('customer-menu').style.display = 'block';
+			} else if (userRole === 'barber') {
+				document.getElementById('barber-menu').style.display = 'block';
+			} else if (userRole === 'admin') {
+				document.getElementById('admin-menu').style.display = 'block';
+			}
 		}
 
 		function showLoggedOutView() {
