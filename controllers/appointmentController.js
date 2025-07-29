@@ -238,8 +238,40 @@ const getMyBarberAppointments = async (req, res) => {
 		res.status(500).json({ message: 'Randevular getirilirken bir sunucu hatası oluştu.' });
 	}
 }
+const cancelAppointment = async (req, res) => {
+	try {
+		const user = req.user;
+		const appointmentId = req.params.id;
+
+		const appointment = await Appointment.findById(appointmentId);
+		console.log(appointment);
+		if (!appointment) {
+			return res.status(404).json({ message: 'İptal edilecek randevu bulunamadı.' });
+		}
+		const isCustomer = user.id == appointment.customer;
+		const isBarber = user.id == appointment.barber;
+		console.log(isCustomer + isBarber);
+		if (!isCustomer && !isBarber && user.role !== 'admin') {
+			// Eğer ne randevunun sahibi ne de ilgili berber değilse (ve admin de değilse)
+			return res.status(403).json({ message: 'Bu işlemi yapmaya yetkiniz yok.' }); // 403 Forbidden
+		}
+		if (appointment.status === "completed" || appointment.status === "cancelled_by_user" || appointment.status === "cancelled_by_barber") {
+			return res.status(400).json({ message: 'Bu randevu zaten tamamlanmış veya iptal edilmiş.' });
+		}
+
+		appointment.status = user.role === 'customer' ? 'cancelled_by_user' : 'cancelled_by_barber';
+
+		await appointment.save();
+		res.status(200).json({ message: 'Randevu başarıyla iptal edildi.', appointment });
+
+	} catch (error) {
+		console.error("Randevu iptal edilirken hata:", error);
+		res.status(500).json({ message: 'Randevu iptal edilirken bir sunucu hatası oluştu.' });
+
+	}
+}
 module.exports = {
 	getAvailableSlots,
 	createAppointment,
-	getMyBarberAppointments
+	getMyBarberAppointments, cancelAppointment
 }

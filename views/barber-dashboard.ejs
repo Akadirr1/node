@@ -134,6 +134,28 @@
 			font-weight: 600;
 		}
 
+		.cancel-btn {
+			background: #ff4444;
+			color: white;
+			border: none;
+			padding: 8px 16px;
+			border-radius: 6px;
+			font-size: 14px;
+			font-weight: 500;
+			cursor: pointer;
+			transition: background-color 0.3s ease;
+			margin-top: 15px;
+		}
+
+		.cancel-btn:hover {
+			background: #ff3333;
+		}
+
+		.cancel-btn:disabled {
+			background: #666;
+			cursor: not-allowed;
+		}
+
 		.error-message {
 			background: #ff4444;
 			color: white;
@@ -293,10 +315,61 @@
                         <div>Planlandı</div>
                     </div>
                 </div>
+                <button class="cancel-btn" onclick="cancelAppointment('${appointment._id}')" id="cancel-${appointment._id}">
+                    Randevuyu İptal Et
+                </button>
             `;
 
 				appointmentsList.appendChild(appointmentCard);
 			});
+		}
+
+		async function cancelAppointment(appointmentId) {
+			const cancelBtn = document.getElementById(`cancel-${appointmentId}`);
+			
+			if (!confirm('Bu randevuyu iptal etmek istediğinizden emin misiniz?')) {
+				return;
+			}
+
+			// Disable button during request
+			cancelBtn.disabled = true;
+			cancelBtn.textContent = 'İptal ediliyor...';
+
+			try {
+				const response = await fetch(`/api/appointments/${appointmentId}`, {
+					method: 'DELETE',
+					credentials: 'include'
+				});
+
+				if (response.ok) {
+					// Remove the appointment card from the UI
+					const appointmentCard = cancelBtn.closest('.appointment-card');
+					appointmentCard.remove();
+
+					// Check if there are any appointments left
+					const remainingAppointments = document.querySelectorAll('.appointment-card');
+					if (remainingAppointments.length === 0) {
+						document.getElementById('appointmentsList').style.display = 'none';
+						document.getElementById('noAppointments').style.display = 'block';
+					}
+
+					alert('Randevu başarıyla iptal edildi.');
+				} else {
+					const errorData = await response.json();
+					alert('Randevu iptal edilirken hata oluştu: ' + (errorData.message || 'Bilinmeyen hata'));
+					
+					// Re-enable button on error
+					cancelBtn.disabled = false;
+					cancelBtn.textContent = 'Randevuyu İptal Et';
+				}
+			} catch (error) {
+				console.error('Error canceling appointment:', error);
+				alert('Randevu iptal edilirken bir hata oluştu.');
+				
+				// Re-enable button on error
+				cancelBtn.disabled = false;
+				cancelBtn.textContent = 'Randevuyu İptal Et';
+			}
 		}
 	</script>
 
