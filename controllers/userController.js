@@ -112,6 +112,25 @@ const logOut = (req, res) => {
 	res.status(200).json({ message: 'Başarıyla çıkış yapıldı.' });
 
 }
-//api/appointment/delete:id olsun 
+const searchCustomerByPhone = async (req, res) => {
+	try {
+		const { phone } = req.query; // ?phone=5551112233
+		if (!phone) {
+			return res.status(400).json({ message: "Telefon numarası gerekli." });
+		}
 
-module.exports = { createBarber, createUser, loginUser, getMe, logOut, getAppointments };
+		// Sadece customer rolündeki kullanıcıları ara
+		const customer = await User.findOne({ phoneNumber: phone, role: 'customer' }).select('name surname');
+
+		if (!customer) {
+			return res.status(404).json({ message: 'Bu telefon numarası ile kayıtlı müşteri bulunamadı.' });
+		}
+
+		res.status(200).json(customer);
+
+	} catch (error) {
+		res.status(500).json({ message: 'Müşteri aranırken bir hata oluştu.' });
+	}
+};
+
+module.exports = { createBarber, createUser, loginUser, getMe, logOut, getAppointments,searchCustomerByPhone };

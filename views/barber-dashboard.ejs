@@ -326,7 +326,7 @@
 
 		async function cancelAppointment(appointmentId) {
 			const cancelBtn = document.getElementById(`cancel-${appointmentId}`);
-			
+
 			if (!confirm('Bu randevuyu iptal etmek istediğinizden emin misiniz?')) {
 				return;
 			}
@@ -357,7 +357,7 @@
 				} else {
 					const errorData = await response.json();
 					alert('Randevu iptal edilirken hata oluştu: ' + (errorData.message || 'Bilinmeyen hata'));
-					
+
 					// Re-enable button on error
 					cancelBtn.disabled = false;
 					cancelBtn.textContent = 'Randevuyu İptal Et';
@@ -365,7 +365,7 @@
 			} catch (error) {
 				console.error('Error canceling appointment:', error);
 				alert('Randevu iptal edilirken bir hata oluştu.');
-				
+
 				// Re-enable button on error
 				cancelBtn.disabled = false;
 				cancelBtn.textContent = 'Randevuyu İptal Et';

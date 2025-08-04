@@ -270,8 +270,80 @@ const cancelAppointment = async (req, res) => {
 
 	}
 }
+const createAppointmentByBarber = async (req, res) => {
+	try {
+		const barber = req.user;
+
+		const { customerId,         // Kayıtlı müşteri varsa ID'si gelecek
+			guestName,          // Misafir ise adı
+			guestSurname,       // Misafir ise soyadı
+			guestPhone,         // Misafir ise telefonu
+			serviceId,
+			startTime } = req.body;
+
+		if (!customerId || !serviceId || !startTime) {
+			return res.status(400).json({ message: 'Müşteri, hizmet ve başlangıç saati zorunludur.' });
+		}
+
+		if (barber.role !== 'barber' && barber.role !== 'admin') {
+			return res.status(403).json({ message: 'Bu işlemi yapmaya sadece berberler yetkilidir.' });
+
+		}
+
+		const appointmentData = {
+			barber: barber.id,
+			service: serviceId,
+			startTime: new Date(startTime)
+		};
+		if (customerId) {
+			appointmentData.customer = customerId
+		}
+		else if (guestName && guestSurname && guestPhone) {
+			appointmentData.guestName = guestName;
+			appointmentData.guestSurname = guestSurname;
+			appointmentData.guestPhoneNumber = guestPhone;
+		}
+		else {
+			return res.status(400).json({
+				message: 'Kayıtlı bir müşteri seçilmeli veya misafir bilgileri girilmelidir.'
+			})
+		}
+
+		const service = await Service.findById(serviceId);
+		if (!service) {
+			return res.status(404).json({ message: 'Hizmet bulunamadı.' })
+		}
+		appointmentData.endTime = new Date(new Date(startTime).getTime() + service.duration * 60 * 1000);
+
+		const appointmentStartTime = new Date(startTime);
+		const appointmentEndTime = new Date(appointmentStartTime.getTime() + service.duration * 60 * 1000);
+		// Berberin kendi takviminde o saatte başka bir randevu var mı diye kontrol et.
+		const existingAppointment = await Appointment.findOne({
+			barber: barber.id, // Randevu, giriş yapmış berberin kendi takvimine yazılıyor.
+			status: 'scheduled',
+			$or: [
+				{ startTime: { $lt: appointmentEndTime, $gte: appointmentStartTime } },
+				{ endTime: { $gt: appointmentStartTime, $lte: appointmentEndTime } }
+			]
+		});
+		if (existingAppointment) {
+			return res.status(409).json({ message: 'Belirtilen saat dilimi zaten dolu veya başka bir randevu ile çakışıyor.' });
+		}
+
+		const newAppointment = new Appointment(appointmentData)
+		await newAppointment.save();
+		res.status(201).json({ message: 'Randevu berber tarafından başarıyla oluşturuldu.', appointment: newAppointment });
+
+	} catch (error) {
+		console.error("Berber tarafından randevu oluşturulurken hata:", error);
+		res.status(500).json({ message: 'Randevu oluşturulurken bir sunucu hatası oluştu.' });
+
+	}
+}
 module.exports = {
 	getAvailableSlots,
 	createAppointment,
-	getMyBarberAppointments, cancelAppointment
+	getMyBarberAppointments,
+	cancelAppointment,
+	createAppointmentByBarber
 }

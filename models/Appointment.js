@@ -5,16 +5,28 @@ const appointmentSchema = new Schema({
 	customer: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User',
-		required: true
+		required: false
+	},
+	guestName: {
+		type: String,
+		required: function () { return !this.customer; }
+	},
+	guestSurname: {
+		type: String,
+		required: function () { return !this.customer; }
+	},
+	guestPhoneNumber: {
+		type: String,
+		required: function () { return !this.customer; }
 	},
 	barber: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User',
 		required: true
 	},
-	service:{
+	service: {
 		type: mongoose.Schema.Types.ObjectId,
-		ref : 'Service',
+		ref: 'Service',
 		required: true
 	},
 	startTime: {
@@ -31,5 +43,5 @@ const appointmentSchema = new Schema({
 		default: 'scheduled'
 	}
 }, { timestamps: true })
-const Appointment = mongoose.model('Appointment',appointmentSchema);
+const Appointment = mongoose.model('Appointment', appointmentSchema);
 module.exports = Appointment;
