@@ -242,9 +242,7 @@ const cancelAppointment = async (req, res) => {
 	try {
 		const user = req.user;
 		const appointmentId = req.params.id;
-
 		const appointment = await Appointment.findById(appointmentId);
-		console.log(appointment);
 		if (!appointment) {
 			return res.status(404).json({ message: 'İptal edilecek randevu bulunamadı.' });
 		}

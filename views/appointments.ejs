@@ -139,11 +139,10 @@
 			}
 
 			try {
-				const response = await fetch(`/profile/${appointmentId}`, {
+				const response = await fetch(`/api/appointments/${appointmentId}`, {
 					method: 'DELETE',
 					credentials: 'include'
 				});
-
 				if (response.ok) {
 					alert('Randevu başarıyla iptal edildi.');
 					// Refresh the appointments list
