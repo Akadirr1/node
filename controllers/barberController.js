@@ -91,10 +91,79 @@ const getMyServices = async (req, res) => {
 		res.status(500).json({ message: 'Hizmetler getirilirken bir sunucu hatası oluştu.' });
 	}
 }
+const toggleServiceStatus = async (req, res) => {
+	try {
+		const barberId = req.user.id;
+
+		const { serviceId } = req.params;
+
+        const barber = await User.findById(barberId).populate('barberProfile.servicesOffered.service', 'name');
+;
+		if (!barber || !barber.barberProfile) {
+			return res.status(404).json({ message: 'Berber profili bulunamadı.' });
+		}
+
+		const serviceToToggle = barber.barberProfile.servicesOffered.find(
+			s => s.service._id.toString() === serviceId
+		)
+		if (!serviceToToggle) {
+			return res.status(404).json({ message: 'Hizmet, berberin menüsünde bulunamadı.' });
+		}
+		console.log(serviceToToggle.service.name);
+		serviceToToggle.isActive = !serviceToToggle.isActive;
+
+		await barber.save();
+		res.status(200).json({
+			message: `'${serviceToToggle.service.name}' hizmetinin durumu güncellendi.`,
+			service: serviceToToggle
+		});
+	} catch (error) {
+		console.error("Hizmet durumu güncellenirken hata:", error);
+		res.status(500).json({ message: 'Hizmet durumu güncellenirken bir sunucu hatası oluştu.' });
+	}
+}
+const updateBarberServiceDetails = async (req, res) => {
+	try {
+		const barberId = req.user.id;
+		const { serviceId } = req.params;
+
+		const { price, duration } = req.body;
+
+		const barber = await User.findById(barberId)
+		if (!barber || !barber.barberProfile) {
+			return res.status(404).json({ message: 'Berber profili bulunamadı.' });
+		}
+
+		const serviceToUpdate = barber.barberProfile.servicesOffered.find(
+			s => s.service.toString() === serviceId
+		)
+		if (!serviceToUpdate) {
+			return res.status(404).json({ message: 'Hizmet, berberin menüsünde bulunamadı.' });
+		}
+		if (price !== undefined) {
+			serviceToUpdate.price = price
+		}
+		if (duration !== undefined) {
+			serviceToUpdate.duration = duration
+		}
+
+		await barber.save();
+
+		res.status(200).json({
+			message: 'Hizmet detayları başarıyla güncellendi.',
+			service: serviceToUpdate
+		})
+	} catch (error) {
+		console.error("Hizmet detayları güncellenirken hata:", error);
+		res.status(500).json({ message: 'Hizmet detayları güncellenirken bir sunucu hatası oluştu.' });
+	}
+}
 module.exports = {
 	getBarberProfile,
 	updateBarberProfile,
 	getBarbers,
 	updateMyServices,
-	getMyServices
+	getMyServices,
+	toggleServiceStatus,
+	updateBarberServiceDetails
 };
