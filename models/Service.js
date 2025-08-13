@@ -8,11 +8,7 @@ const ServiceSchema = new Schema({
 		unique: true,
 		trim: true
 	},
-	duration: {
-		type: Number,
-		required: true
-	},
-	price: {
+	defaultDuration: {
 		type: Number,
 		required: true
 	}

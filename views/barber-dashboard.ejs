@@ -33,6 +33,68 @@
 					<p>Henüz randevunuz bulunmamaktadır.</p>
 				</div>
 			</div>
+
+			<!-- Services Section -->
+			<div class="services-section">
+				<div class="services-header">
+					<h2 class="section-title">Aktif Hizmetlerim</h2>
+					<button class="add-service-btn" onclick="showAddServiceModal()">Hizmet Ekle</button>
+				</div>
+
+				<!-- Loading Spinner for Services -->
+				<div id="servicesLoading" class="text-center">
+					<div class="spinner-border" role="status">
+						<span class="sr-only">Yükleniyor...</span>
+					</div>
+				</div>
+
+				<!-- Error Message for Services -->
+				<div id="servicesError" class="error-message" style="display: none;"></div>
+
+				<!-- Services List -->
+				<div id="servicesList" class="services-list" style="display: none;">
+					<!-- Services will be inserted here -->
+				</div>
+
+				<!-- No Services Message -->
+				<div id="noServices" class="no-services" style="display: none;">
+					<p>Henüz aktif hizmetiniz bulunmamaktadır.</p>
+				</div>
+			</div>
+
+			<!-- Add Service Modal -->
+			<div id="addServiceModal" class="modal" style="display: none;">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h3>Yeni Hizmet Ekle</h3>
+						<span class="close" onclick="hideAddServiceModal()">&times;</span>
+					</div>
+					<div class="modal-body">
+						<form id="addServiceForm">
+							<div class="form-group">
+								<label for="serviceSelect">Hizmet Seçin:</label>
+								<select id="serviceSelect" required>
+									<option value="">Hizmet seçiniz...</option>
+									<!-- Options will be loaded dynamically -->
+								</select>
+							</div>
+							<div class="form-group">
+								<label for="servicePrice">Fiyat (₺):</label>
+								<input type="number" id="servicePrice" min="0" step="0.01" required>
+							</div>
+							<div class="form-group">
+								<label for="serviceDuration">Süre (dakika):</label>
+								<input type="number" id="serviceDuration" min="1" step="1" required>
+							</div>
+							<div class="form-actions">
+								<button type="button" class="cancel-btn-modal"
+									onclick="hideAddServiceModal()">İptal</button>
+								<button type="submit" class="save-btn">Hizmeti Ekle</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 
@@ -65,6 +127,223 @@
 
 		.appointments-section {
 			padding: 0 40px;
+		}
+
+		.services-section {
+			padding: 0 40px;
+			margin-top: 50px;
+		}
+
+		.services-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 30px;
+		}
+
+		.add-service-btn {
+			background: #8bc34a;
+			color: #000000;
+			border: none;
+			padding: 12px 24px;
+			border-radius: 8px;
+			font-size: 16px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: background-color 0.3s ease;
+		}
+
+		.add-service-btn:hover {
+			background: #7cb342;
+		}
+
+		/* Modal Styles */
+		.modal {
+			position: fixed;
+			z-index: 1000;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0, 0, 0, 0.8);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.modal-content {
+			background: #2d2d2d;
+			border-radius: 12px;
+			width: 90%;
+			max-width: 500px;
+			border: 1px solid #4a4a4a;
+		}
+
+		.modal-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 20px 25px;
+			border-bottom: 1px solid #4a4a4a;
+		}
+
+		.modal-header h3 {
+			color: #8bc34a;
+			margin: 0;
+			font-size: 20px;
+		}
+
+		.close {
+			color: #ffffff;
+			font-size: 28px;
+			font-weight: bold;
+			cursor: pointer;
+			line-height: 1;
+		}
+
+		.close:hover {
+			color: #8bc34a;
+		}
+
+		.modal-body {
+			padding: 25px;
+		}
+
+		.form-group {
+			margin-bottom: 20px;
+		}
+
+		.form-group label {
+			display: block;
+			color: #ffffff;
+			font-weight: 600;
+			margin-bottom: 8px;
+		}
+
+		.form-group input,
+		.form-group select {
+			width: 100%;
+			padding: 12px;
+			border: 1px solid #4a4a4a;
+			border-radius: 6px;
+			background: #1a1a1a;
+			color: #ffffff;
+			font-size: 16px;
+		}
+
+		.form-group input:focus,
+		.form-group select:focus {
+			outline: none;
+			border-color: #8bc34a;
+		}
+
+		.form-actions {
+			display: flex;
+			gap: 15px;
+			justify-content: flex-end;
+			margin-top: 30px;
+		}
+
+		.cancel-btn-modal {
+			background: #666;
+			color: white;
+			border: none;
+			padding: 12px 24px;
+			border-radius: 6px;
+			font-size: 16px;
+			cursor: pointer;
+			transition: background-color 0.3s ease;
+		}
+
+		.cancel-btn-modal:hover {
+			background: #555;
+		}
+
+		.save-btn {
+			background: #8bc34a;
+			color: #000000;
+			border: none;
+			padding: 12px 24px;
+			border-radius: 6px;
+			font-size: 16px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: background-color 0.3s ease;
+		}
+
+		.save-btn:hover {
+			background: #7cb342;
+		}
+
+		.save-btn:disabled {
+			background: #666;
+			cursor: not-allowed;
+		}
+
+		.services-list {
+			display: grid;
+			grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+			gap: 20px;
+		}
+
+		.service-card {
+			background: #2d2d2d;
+			border-radius: 12px;
+			padding: 20px;
+			border: 1px solid #4a4a4a;
+			transition: transform 0.3s ease, box-shadow 0.3s ease;
+		}
+
+		.service-card:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+		}
+
+		.service-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 15px;
+		}
+
+		.service-title {
+			color: #8bc34a;
+			font-size: 18px;
+			font-weight: 600;
+		}
+
+		.service-price {
+			color: #ffffff;
+			font-size: 16px;
+			font-weight: 500;
+		}
+
+		.service-info {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			color: #b0b0b0;
+			font-size: 14px;
+		}
+
+		.service-duration {
+			color: #8bc34a;
+		}
+
+		.service-status {
+			background: #28a745;
+			color: white;
+			padding: 4px 8px;
+			border-radius: 4px;
+			font-size: 12px;
+			font-weight: 500;
+		}
+
+		.no-services {
+			text-align: center;
+			padding: 60px 20px;
+			color: #b0b0b0;
+			font-size: 18px;
 		}
 
 		.section-title {
@@ -189,7 +468,8 @@
 				font-size: 28px;
 			}
 
-			.appointments-section {
+			.appointments-section,
+			.services-section {
 				padding: 0 20px;
 			}
 
@@ -201,10 +481,32 @@
 			.appointment-card {
 				padding: 20px;
 			}
+
+			.services-list {
+				grid-template-columns: 1fr;
+			}
+
+			.services-header {
+				flex-direction: column;
+				gap: 15px;
+				align-items: stretch;
+			}
+
+			.modal-content {
+				width: 95%;
+				margin: 10px;
+			}
+
+			.form-actions {
+				flex-direction: column;
+			}
 		}
 	</style>
 
 	<script>
+		let services = [];
+		let myServices = [];
+
 		document.addEventListener('DOMContentLoaded', async function () {
 			// Check if user is authenticated and is a barber
 			const isAuthenticated = await checkUserAuthentication();
@@ -213,9 +515,90 @@
 				return;
 			}
 
-			// Fetch barber's appointments
+			// Fetch barber's appointments and services
 			fetchMyAppointments();
+			fetchMyServices();
+			fetchAllServices();
+
+			// Setup event listeners
+			setupEventListeners();
 		});
+
+		function setupEventListeners() {
+			// Modal click outside to close
+			window.onclick = function (event) {
+				const modal = document.getElementById('addServiceModal');
+				if (event.target === modal) {
+					hideAddServiceModal();
+				}
+			}
+
+			// Form submit handler
+			const form = document.getElementById('addServiceForm');
+			if (form) {
+				form.addEventListener('submit', handleAddServiceSubmit);
+			}
+		}
+
+		async function handleAddServiceSubmit(e) {
+			e.preventDefault();
+
+			const serviceId = document.getElementById('serviceSelect').value;
+			const price = parseFloat(document.getElementById('servicePrice').value);
+			const duration = parseInt(document.getElementById('serviceDuration').value);
+
+			// Validation
+			if (!serviceId) {
+				alert('Lütfen bir hizmet seçin');
+				return;
+			}
+			if (!price || price <= 0) {
+				alert('Lütfen geçerli bir fiyat girin');
+				return;
+			}
+			if (!duration || duration <= 0) {
+				alert('Lütfen geçerli bir süre girin');
+				return;
+			}
+
+			// Bu kontrole artık gerek yok çünkü dropdown zaten filtrelenmiş hizmetleri gösteriyor
+			// Ama güvenlik için bırakabiliriz
+			const existingService = myServices.find(s => s.service && s.service._id === serviceId);
+			if (existingService) {
+				alert('Bu hizmet zaten mevcut');
+				return;
+			}
+
+			try {
+				const response = await fetch('/api/barbers/me/services', {
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					credentials: 'include',
+					body: JSON.stringify({
+						servicesOffered: [{
+							service: serviceId,
+							price: price,
+							duration: duration,
+							isActive: true
+						}]
+					})
+				});
+
+				if (response.ok) {
+					hideAddServiceModal();
+					await fetchMyServices(); // Refresh services list
+					alert('Hizmet başarıyla eklendi!');
+				} else {
+					const error = await response.json();
+					throw new Error(error.message || 'Hizmet eklenirken hata oluştu');
+				}
+			} catch (error) {
+				console.error('Error:', error);
+				alert('Hizmet eklenirken hata oluştu: ' + error.message);
+			}
+		}
 
 		async function checkUserAuthentication() {
 			try {
@@ -239,6 +622,51 @@
 			} catch (error) {
 				console.error('Authentication check failed:', error);
 				return false;
+			}
+		}
+
+		async function fetchAllServices() {
+			try {
+				const response = await fetch('/api/services');
+				if (!response.ok) {
+					throw new Error('Hizmetler alınamadı');
+				}
+				services = await response.json();
+				populateServiceDropdown();
+			} catch (error) {
+				console.error('Error fetching services:', error);
+			}
+		}
+
+		function populateServiceDropdown() {
+			const select = document.getElementById('serviceSelect');
+			if (select) {
+				select.innerHTML = '<option value="">Hizmet seçiniz...</option>';
+
+				// Berberin zaten eklediği hizmetlerin ID'lerini al
+				const addedServiceIds = myServices.map(serviceOffered =>
+					serviceOffered.service ? serviceOffered.service._id : null
+				).filter(id => id !== null);
+
+				// Sadece henüz eklenmemiş hizmetleri göster
+				const availableServices = services.filter(service =>
+					!addedServiceIds.includes(service._id)
+				);
+
+				if (availableServices.length === 0) {
+					const option = document.createElement('option');
+					option.value = '';
+					option.textContent = 'Eklenebilecek hizmet bulunmuyor';
+					option.disabled = true;
+					select.appendChild(option);
+				} else {
+					availableServices.forEach(service => {
+						const option = document.createElement('option');
+						option.value = service._id;
+						option.textContent = service.name;
+						select.appendChild(option);
+					});
+				}
 			}
 		}
 
@@ -370,6 +798,82 @@
 				cancelBtn.disabled = false;
 				cancelBtn.textContent = 'Randevuyu İptal Et';
 			}
+		}
+
+		async function fetchMyServices() {
+			const loading = document.getElementById('servicesLoading');
+			const errorMessage = document.getElementById('servicesError');
+			const servicesList = document.getElementById('servicesList');
+			const noServices = document.getElementById('noServices');
+
+			try {
+				const response = await fetch('/api/barbers/me/services', {
+					credentials: 'include'
+				});
+
+				loading.style.display = 'none';
+
+				if (response.ok) {
+					const servicesData = await response.json();
+					myServices = servicesData;
+
+					if (servicesData.length > 0) {
+						servicesList.style.display = 'grid';
+						renderServices(servicesData);
+					} else {
+						noServices.style.display = 'block';
+					}
+
+					// Dropdown'u güncelle (mevcut hizmetler değiştiği için)
+					populateServiceDropdown();
+				} else if (response.status === 401) {
+					window.location.href = '/login';
+				} else {
+					errorMessage.textContent = 'Hizmetler yüklenirken bir hata oluştu.';
+					errorMessage.style.display = 'block';
+				}
+			} catch (error) {
+				loading.style.display = 'none';
+				errorMessage.textContent = 'Hizmetler yüklenirken bir hata oluştu.';
+				errorMessage.style.display = 'block';
+				console.error('Error fetching services:', error);
+			}
+		}
+
+		function renderServices(services) {
+			const servicesList = document.getElementById('servicesList');
+			servicesList.innerHTML = '';
+
+			services.forEach(serviceOffered => {
+				const service = serviceOffered.service; // Populated service data
+
+				const serviceCard = document.createElement('div');
+				serviceCard.className = 'service-card';
+				serviceCard.innerHTML = `
+					<div class="service-header">
+						<div class="service-title">${service.name}</div>
+						<div class="service-price">${serviceOffered.price}₺</div>
+					</div>
+					<div class="service-info">
+						<div class="service-duration">${serviceOffered.duration} dakika</div>
+						<div class="service-status">Aktif</div>
+					</div>
+				`;
+
+				servicesList.appendChild(serviceCard);
+			});
+		}
+
+		function showAddServiceModal() {
+			document.getElementById('addServiceModal').style.display = 'block';
+			document.body.style.overflow = 'hidden';
+		}
+
+		function hideAddServiceModal() {
+			document.getElementById('addServiceModal').style.display = 'none';
+			document.body.style.overflow = 'auto';
+			// Reset form
+			document.getElementById('addServiceForm').reset();
 		}
 	</script>
 

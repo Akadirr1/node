@@ -47,9 +47,54 @@ const updateBarberProfile = async (req, res) => {
 
 	}
 }
+const updateMyServices = async (req, res) => {
+	try {
+		const barberId = req.user.id;
 
+		const { servicesOffered } = req.body;
+		if (!Array.isArray(servicesOffered)) {
+			return res.status(400).json({ message: 'Hizmetler bir dizi formatında gönderilmelidir.' });
+		}
+
+		// Yeni hizmet eklemek için $push kullan
+		const updatedBarber = await User.findByIdAndUpdate(barberId, {
+			$push: { 'barberProfile.servicesOffered': { $each: servicesOffered } }
+		}, { new: true, runValidators: true }).populate('barberProfile.servicesOffered.service', 'name');
+
+		if (!updatedBarber) {
+			return res.status(404).json({ message: 'Berber bulunamadı.' });
+		}
+
+		res.status(200).json({
+			message: 'Hizmet başarıyla eklendi.',
+			servicesOffered: updatedBarber.barberProfile.servicesOffered
+		});
+
+	} catch (error) {
+		console.error("Berber hizmetleri güncellenirken hata:", error);
+		res.status(500).json({ message: 'Hizmetler güncellenirken bir sunucu hatası oluştu.' });
+	}
+}
+const getMyServices = async (req, res) => {
+
+	try {
+		const barberId = req.user.id;
+
+		const user = await User.findById(barberId).select('barberProfile.servicesOffered').populate('barberProfile.servicesOffered.service', 'name defaultDuration');
+		if (!user || !user.barberProfile) {
+			return res.status(404).json({ message: 'Berber profili bulunamadı.' });
+		}
+
+		res.status(200).json(user.barberProfile.servicesOffered)
+	} catch (error) {
+		console.error("Berberin hizmetleri getirilirken hata:", error);
+		res.status(500).json({ message: 'Hizmetler getirilirken bir sunucu hatası oluştu.' });
+	}
+}
 module.exports = {
 	getBarberProfile,
 	updateBarberProfile,
-	getBarbers
+	getBarbers,
+	updateMyServices,
+	getMyServices
 };

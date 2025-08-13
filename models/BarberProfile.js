@@ -28,7 +28,7 @@ const standardAvailabilitySchema = new Schema({
 const timeOffSchema = new Schema({
 	reason: {
 		type: String,
-		default : "Musait degil"
+		default: "Musait degil"
 	},
 	startTime: {
 		type: Date,
@@ -39,10 +39,32 @@ const timeOffSchema = new Schema({
 		required: true
 	}
 }, { _id: false });
+const barberServiceSchema = new Schema({
 
+	service: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'Service',
+		required: true
+	},
+	price: {
+		type: Number,
+		required: true
+	},
+	duration: {
+		type: Number,
+		required: true
+	},
+	isActive: {
+		type: Boolean,
+		required: true,
+		default:true
+	}
+
+}, { _id: false })
 const barberProfileSchema = new Schema({
 	standardAvailability: [standardAvailabilitySchema],
-	timeOffs: [timeOffSchema]
+	timeOffs: [timeOffSchema],
+	servicesOffered: [barberServiceSchema]
 })
 
 module.exports = barberProfileSchema;
