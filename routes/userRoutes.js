@@ -8,5 +8,5 @@ router.get('/me',protect,getMe);
 router.get('/myAppointments',protect,getAppointments)
 router.post('/login/user', loginUser);
 router.post('/logout',logOut);
-router.get('/search',protect,searchCustomerByPhone);
+router.get('/search',searchCustomerByPhone);
 module.exports = router;

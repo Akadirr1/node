@@ -271,7 +271,8 @@ const cancelAppointment = async (req, res) => {
 const createAppointmentByBarber = async (req, res) => {
 	try {
 		const barber = req.user;
-
+		barber.populate('barberProfile.servicesOffered.service', 'name');
+		
 		const { customerId,         // Kayıtlı müşteri varsa ID'si gelecek
 			guestName,          // Misafir ise adı
 			guestSurname,       // Misafir ise soyadı
@@ -279,19 +280,31 @@ const createAppointmentByBarber = async (req, res) => {
 			serviceId,
 			startTime } = req.body;
 
-		if (!customerId || !serviceId || !startTime) {
+		if (!serviceId || !startTime) {
 			return res.status(400).json({ message: 'Müşteri, hizmet ve başlangıç saati zorunludur.' });
 		}
-
+		const service = barber.barberProfile.servicesOffered.find(
+			s => s.service._id.toString() === serviceId
+		)
+		const hasCustomerInfo = customerId || (guestName && guestSurname && guestPhone);
+		if (!hasCustomerInfo) {
+			return res.status(400).json({ message: 'Kayıtlı bir müşteri seçilmeli veya misafir bilgileri eksiksiz girilmelidir.' });
+		}
 		if (barber.role !== 'barber' && barber.role !== 'admin') {
 			return res.status(403).json({ message: 'Bu işlemi yapmaya sadece berberler yetkilidir.' });
 
 		}
+		//const service = await barber.barberProfile.servicesOffered.findById(serviceId)
+		if (!service) {
+			return res.status(404).json({ message: 'Hizmet bulunamadı.' })
+		}
+		const appointmentEndTime = new Date(new Date(startTime).getTime() + service.duration * 60 * 1000);
 
 		const appointmentData = {
 			barber: barber.id,
 			service: serviceId,
-			startTime: new Date(startTime)
+			startTime: new Date(startTime),
+			endTime: appointmentEndTime
 		};
 		if (customerId) {
 			appointmentData.customer = customerId
@@ -307,21 +320,16 @@ const createAppointmentByBarber = async (req, res) => {
 			})
 		}
 
-		const service = await Service.findById(serviceId);
-		if (!service) {
-			return res.status(404).json({ message: 'Hizmet bulunamadı.' })
-		}
-		appointmentData.endTime = new Date(new Date(startTime).getTime() + service.duration * 60 * 1000);
 
-		const appointmentStartTime = new Date(startTime);
-		const appointmentEndTime = new Date(appointmentStartTime.getTime() + service.duration * 60 * 1000);
+		//const appointmentStartTime = new Date(startTime);
+		//const appointmentEndTime = new Date(appointmentStartTime.getTime() + service.duration * 60 * 1000);
 		// Berberin kendi takviminde o saatte başka bir randevu var mı diye kontrol et.
 		const existingAppointment = await Appointment.findOne({
 			barber: barber.id, // Randevu, giriş yapmış berberin kendi takvimine yazılıyor.
 			status: 'scheduled',
 			$or: [
-				{ startTime: { $lt: appointmentEndTime, $gte: appointmentStartTime } },
-				{ endTime: { $gt: appointmentStartTime, $lte: appointmentEndTime } }
+				{ startTime: { $lt: appointmentData.endTime, $gte: appointmentData.startTime } },
+				{ endTime: { $gt: appointmentData.startTime, $lte: appointmentData.endTime } }
 			]
 		});
 		if (existingAppointment) {

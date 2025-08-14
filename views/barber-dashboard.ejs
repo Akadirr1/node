@@ -11,7 +11,10 @@
 
 			<!-- Appointments Section -->
 			<div class="appointments-section">
-				<h2 class="section-title">Yaklaşan Randevularım</h2>
+				<div class="appointments-header">
+					<h2 class="section-title">Yaklaşan Randevularım</h2>
+					<button class="add-appointment-btn" onclick="showAddAppointmentModal()">Manuel Randevu Ekle</button>
+				</div>
 
 				<!-- Loading Spinner -->
 				<div id="appointmentsLoading" class="text-center">
@@ -411,6 +414,96 @@
 				</div>
 			</div>
 
+			<!-- Add Manual Appointment Modal -->
+			<div id="addAppointmentModal" class="modal" style="display: none;">
+				<div class="modal-content appointment-modal">
+					<div class="modal-header">
+						<h3>Manuel Randevu Ekle</h3>
+						<span class="close" onclick="hideAddAppointmentModal()">&times;</span>
+					</div>
+					<div class="modal-body">
+						<form id="addAppointmentForm">
+							<!-- Customer Type Selection -->
+							<div class="form-group">
+								<label class="form-label">Müşteri Tipi:</label>
+								<div class="customer-type-tabs">
+									<button type="button" class="tab-btn active" id="registeredTab"
+										onclick="switchCustomerType('registered')">
+										Kayıtlı Müşteri
+									</button>
+									<button type="button" class="tab-btn" id="guestTab"
+										onclick="switchCustomerType('guest')">
+										Misafir
+									</button>
+								</div>
+							</div>
+
+							<!-- Registered Customer Section -->
+							<div id="registeredCustomerSection" class="customer-section">
+								<div class="form-group">
+									<label for="customerSearch" class="form-label">Müşteri Ara (Telefon):</label>
+									<input type="tel" id="customerSearch" class="form-control"
+										placeholder="Telefon numarası girin..." oninput="searchCustomers(this.value)">
+									<div id="selectedCustomerInfo" class="selected-customer-info" style="display: none;"></div>
+								</div>
+								<input type="hidden" id="customerId" value="">
+							</div>
+
+							<!-- Guest Customer Section -->
+							<div id="guestCustomerSection" class="customer-section" style="display: none;">
+								<div class="form-group">
+									<label class="form-label">Misafir Bilgileri:</label>
+									<div class="guest-info-container">
+										<div class="input-group">
+											<label for="guestName">Ad:</label>
+											<input type="text" id="guestName" placeholder="Müşteri adı">
+										</div>
+										<div class="input-group">
+											<label for="guestSurname">Soyad:</label>
+											<input type="text" id="guestSurname" placeholder="Müşteri soyadı">
+										</div>
+										<div class="input-group">
+											<label for="guestPhone">Telefon:</label>
+											<input type="tel" id="guestPhone" placeholder="0532 123 45 67">
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<!-- Service Selection -->
+							<div class="form-group">
+								<label for="appointmentServiceId" class="form-label">Hizmet:</label>
+								<select id="appointmentServiceId" class="form-select" required>
+									<option value="">Hizmet seçin...</option>
+								</select>
+							</div>
+
+							<!-- Date and Time Selection -->
+							<div class="form-group">
+								<label class="form-label">Randevu Tarihi ve Saati:</label>
+								<div class="datetime-container">
+									<div class="input-group">
+										<label for="appointmentDate">Tarih:</label>
+										<input type="date" id="appointmentDate" required>
+									</div>
+									<div class="input-group">
+										<label for="appointmentTime">Saat:</label>
+										<input type="text" id="appointmentTime" class="time-picker"
+											placeholder="Saat seçin" required>
+									</div>
+								</div>
+							</div>
+
+							<div class="form-actions">
+								<button type="button" class="cancel-btn-modal"
+									onclick="hideAddAppointmentModal()">İptal</button>
+								<button type="submit" class="save-btn">Randevu Ekle</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+
 		</div>
 	</div>
 
@@ -625,9 +718,188 @@
 			background: #7cb342;
 		}
 
+		/* Selected Customer Info Styling */
+		.selected-customer-info {
+			margin-top: 10px;
+			padding: 8px 12px;
+			border-radius: 5px;
+			font-size: 14px;
+			font-weight: 500;
+			border: 1px solid transparent;
+			background-color: rgba(255, 255, 255, 0.05);
+		}
+
+		.selected-customer-info.success {
+			background-color: rgba(40, 167, 69, 0.1);
+			border-color: #28a745;
+			color: #28a745;
+		}
+
+		.selected-customer-info.error {
+			background-color: rgba(220, 53, 69, 0.1);
+			border-color: #dc3545;
+			color: #dc3545;
+		}
+
+		.selected-customer-info.warning {
+			background-color: rgba(255, 193, 7, 0.1);
+			border-color: #ffc107;
+			color: #ffc107;
+		}
+
 		.save-btn:disabled {
 			background: #666;
 			cursor: not-allowed;
+		}
+
+		/* Appointments Header */
+		.appointments-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 30px;
+		}
+
+		.add-appointment-btn {
+			background: #2196f3;
+			color: white;
+			border: none;
+			padding: 12px 24px;
+			border-radius: 8px;
+			font-size: 16px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: background-color 0.3s ease;
+		}
+
+		.add-appointment-btn:hover {
+			background: #1976d2;
+		}
+
+		/* Appointment Modal Specific Styles */
+		.appointment-modal {
+			max-width: 700px;
+		}
+
+		.customer-type-tabs {
+			display: flex;
+			background: #1a1a1a;
+			border-radius: 8px;
+			padding: 4px;
+			margin-bottom: 20px;
+		}
+
+		.tab-btn {
+			flex: 1;
+			background: transparent;
+			color: #ffffff;
+			border: none;
+			padding: 12px 16px;
+			border-radius: 6px;
+			font-size: 14px;
+			font-weight: 500;
+			cursor: pointer;
+			transition: all 0.3s ease;
+		}
+
+		.tab-btn.active {
+			background: #2196f3;
+			color: #ffffff;
+		}
+
+		.tab-btn:hover:not(.active) {
+			background: #333;
+		}
+
+		.customer-section {
+			margin-bottom: 20px;
+		}
+
+		.guest-info-container {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 15px;
+		}
+
+		.guest-info-container .input-group:last-child {
+			grid-column: 1 / -1;
+		}
+
+		.input-group {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.input-group label {
+			color: #ffffff;
+			font-size: 14px;
+			font-weight: 500;
+			margin-bottom: 8px;
+		}
+
+		.input-group input {
+			padding: 12px;
+			border: 2px solid #4a4a4a;
+			border-radius: 8px;
+			background: #1a1a1a;
+			color: #ffffff;
+			font-size: 16px;
+			transition: border-color 0.3s ease;
+		}
+
+		.input-group input:focus {
+			outline: none;
+			border-color: #2196f3;
+			box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+		}
+
+		.form-select {
+			width: 100%;
+			padding: 12px;
+			border: 2px solid #4a4a4a;
+			border-radius: 8px;
+			background: #1a1a1a;
+			color: #ffffff;
+			font-size: 16px;
+			cursor: pointer;
+			transition: border-color 0.3s ease;
+		}
+
+		.form-select:focus {
+			outline: none;
+			border-color: #2196f3;
+			box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+		}
+
+		.form-select option {
+			background: #1a1a1a;
+			color: #ffffff;
+		}
+
+		.datetime-container {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 20px;
+		}
+
+		@media (max-width: 768px) {
+
+			.guest-info-container,
+			.datetime-container {
+				grid-template-columns: 1fr;
+				gap: 15px;
+			}
+
+			.appointment-modal {
+				margin: 20px;
+				max-width: none;
+			}
+
+			.appointments-header {
+				flex-direction: column;
+				gap: 15px;
+				align-items: stretch;
+			}
 		}
 
 		/* Time Off Modal Specific Styles */
@@ -1022,6 +1294,12 @@
 			color: #8bc34a;
 			font-size: 20px;
 			font-weight: 600;
+		}
+
+		.customer-type {
+			color: #b0b0b0;
+			font-size: 14px;
+			font-style: italic;
 		}
 
 		.appointment-time {
@@ -1461,6 +1739,12 @@
 			if (addTimeOffForm) {
 				addTimeOffForm.addEventListener('submit', handleAddTimeOffSubmit);
 			}
+
+			// Add appointment form submit handler
+			const addAppointmentForm = document.getElementById('addAppointmentForm');
+			if (addAppointmentForm) {
+				addAppointmentForm.addEventListener('submit', handleAddAppointmentSubmit);
+			}
 		}
 
 		async function handleAddServiceSubmit(e) {
@@ -1645,14 +1929,34 @@
 					minute: '2-digit'
 				});
 
+				// Müşteri bilgilerini belirle (kayıtlı kullanıcı veya misafir)
+				let customerName, customerInfo;
+				if (appointment.customer) {
+					// Kayıtlı kullanıcı
+					customerName = `${appointment.customer.name} ${appointment.customer.surname}`;
+					customerInfo = 'Kayıtlı Müşteri';
+				} else if (appointment.guestName) {
+					// Misafir randevu
+					customerName = `${appointment.guestName} ${appointment.guestSurname}`;
+					customerInfo = `Misafir - ${appointment.guestPhoneNumber}`;
+				} else {
+					// Fallback durumu
+					customerName = 'Müşteri Bilgisi Bulunamadı';
+					customerInfo = 'Bilinmeyen';
+				}
+
 				const appointmentCard = document.createElement('div');
 				appointmentCard.className = 'appointment-card';
 				appointmentCard.innerHTML = `
                 <div class="appointment-header">
-                    <div class="customer-name">${appointment.customer.name} ${appointment.customer.surname}</div>
+                    <div class="customer-name">${customerName}</div>
                     <div class="appointment-time">${formattedDate} - ${formattedTime}</div>
                 </div>
                 <div class="appointment-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Müşteri Tipi:</div>
+                        <div class="customer-type">${customerInfo}</div>
+                    </div>
                     <div class="detail-item">
                         <div class="detail-label">Hizmet:</div>
                         <div class="service-name">${appointment.service.name}</div>
@@ -1768,7 +2072,21 @@
 			servicesList.innerHTML = '';
 
 			services.forEach((serviceOffered, index) => {
-				const service = serviceOffered.service; // Populated service data
+				// API'den gelen veri yapısına göre service bilgilerini al
+				let service, serviceName, serviceDuration, serviceId;
+
+				if (serviceOffered.service) {
+					// Populate edilmiş durumda
+					service = serviceOffered.service;
+					serviceName = service.name || 'İsimsiz Hizmet';
+					serviceDuration = serviceOffered.duration || service.duration || 'Belirsiz';
+					serviceId = service._id;
+				} else {
+					// Direkt serviceOffered içinde bilgiler var
+					serviceName = serviceOffered.name || 'İsimsiz Hizmet';
+					serviceDuration = serviceOffered.duration || 'Belirsiz';
+					serviceId = serviceOffered._id;
+				}
 
 				// isActive durumuna göre status text ve class belirle
 				const statusText = serviceOffered.isActive ? 'Aktif' : 'Deaktif';
@@ -1776,24 +2094,24 @@
 
 				const serviceCard = document.createElement('div');
 				serviceCard.className = 'service-card';
-				serviceCard.setAttribute('data-service-id', service._id);
+				serviceCard.setAttribute('data-service-id', serviceId);
 				serviceCard.setAttribute('data-service-index', index);
 
 				serviceCard.innerHTML = `
 					<div class="service-header">
-						<div class="service-title">${service.name}</div>
-						<div class="service-price">${serviceOffered.price}₺</div>
+						<div class="service-title">${serviceName}</div>
+						<div class="service-price">${serviceOffered.price || 0}₺</div>
 					</div>
 					<div class="service-info">
-						<div class="service-duration">${serviceOffered.duration} dakika</div>
+						<div class="service-duration">${serviceDuration} dakika</div>
 						<div class="service-status ${statusClass}">${statusText}</div>
 					</div>
 					<div class="service-actions">
-						<button class="edit-btn" onclick="openEditServiceModal('${service._id}', ${index})" title="Düzenle">
+						<button class="edit-btn" onclick="openEditServiceModal('${serviceId}', ${index})" title="Düzenle">
 							<i class="fas fa-edit"></i> Düzenle
 						</button>
 						<div class="toggle-switch-card">
-							<input type="checkbox" id="toggle-${service._id}" ${serviceOffered.isActive ? 'checked' : ''} onchange="toggleServiceStatus('${service._id}', ${index})">
+							<input type="checkbox" id="toggle-${serviceId}" ${serviceOffered.isActive ? 'checked' : ''} onchange="toggleServiceStatus('${serviceId}', ${index})">
 							<span class="toggle-slider"></span>
 						</div>
 					</div>
@@ -1801,6 +2119,9 @@
 
 				servicesList.appendChild(serviceCard);
 			});
+
+			// Debug için console.log ekleyelim
+			console.log('Services data:', services);
 		}
 
 		async function fetchMyTimeOffs() {
@@ -2126,6 +2447,236 @@
 			} catch (error) {
 				console.error('Error:', error);
 				alert('İzin eklenirken hata oluştu: ' + error.message);
+			}
+		}
+
+		// Manual Appointment Management Functions
+		function showAddAppointmentModal() {
+			document.getElementById('addAppointmentModal').style.display = 'block';
+			document.body.style.overflow = 'hidden';
+
+			// Set minimum date to today
+			const today = new Date().toISOString().split('T')[0];
+			document.getElementById('appointmentDate').min = today;
+
+			// Load customers and services
+			loadCustomersForAppointment();
+			loadServicesForAppointment();
+
+			// Initialize time picker
+			initializeAppointmentTimePicker();
+		}
+
+		function hideAddAppointmentModal() {
+			document.getElementById('addAppointmentModal').style.display = 'none';
+			document.body.style.overflow = 'auto';
+			// Reset form
+			document.getElementById('addAppointmentForm').reset();
+			// Reset to registered customer tab
+			switchCustomerType('registered');
+		}
+
+		function switchCustomerType(type) {
+			const registeredTab = document.getElementById('registeredTab');
+			const guestTab = document.getElementById('guestTab');
+			const registeredSection = document.getElementById('registeredCustomerSection');
+			const guestSection = document.getElementById('guestCustomerSection');
+
+			if (type === 'registered') {
+				registeredTab.classList.add('active');
+				guestTab.classList.remove('active');
+				registeredSection.style.display = 'block';
+				guestSection.style.display = 'none';
+
+				// Clear guest inputs
+				document.getElementById('guestName').value = '';
+				document.getElementById('guestSurname').value = '';
+				document.getElementById('guestPhone').value = '';
+			} else {
+				guestTab.classList.add('active');
+				registeredTab.classList.remove('active');
+				guestSection.style.display = 'block';
+				registeredSection.style.display = 'none';
+
+				// Clear registered customer selection and search
+				document.getElementById('customerId').value = '';
+				document.getElementById('customerSearch').value = '';
+				document.getElementById('selectedCustomerInfo').style.display = 'none';
+			}
+		}
+
+		async function loadCustomersForAppointment() {
+			// Artık otomatik yükleme yapmıyoruz, sadece arama ile çalışıyor
+			return;
+		}
+
+		// Müşteri arama fonksiyonu
+		async function searchCustomers(searchTerm) {
+			const customerIdInput = document.getElementById('customerId');
+			const selectedCustomerInfo = document.getElementById('selectedCustomerInfo');
+
+			// Bilgi alanını temizle
+			selectedCustomerInfo.style.display = 'none';
+			selectedCustomerInfo.className = 'selected-customer-info';
+			customerIdInput.value = '';
+
+			if (!searchTerm || searchTerm.length < 3) {
+				return;
+			}
+
+			try {
+				// Telefon numarası ile direkt arama yap
+				const response = await fetch(`/profile/search?phone=${encodeURIComponent(searchTerm)}`, {
+					credentials: 'include'
+				});
+
+				if (response.ok) {
+					const customer = await response.json();
+					// Tek müşteri bulundu, otomatik seç
+					customerIdInput.value = customer._id;
+					selectedCustomerInfo.textContent = `✓ Seçilen Müşteri: ${customer.name} ${customer.surname} - ${searchTerm}`;
+					selectedCustomerInfo.className = 'selected-customer-info success';
+					selectedCustomerInfo.style.display = 'block';
+				} else if (response.status === 404) {
+					selectedCustomerInfo.textContent = '⚠ Bu telefon numarası ile kayıtlı müşteri bulunamadı';
+					selectedCustomerInfo.className = 'selected-customer-info error';
+					selectedCustomerInfo.style.display = 'block';
+				} else {
+					selectedCustomerInfo.textContent = '❌ Arama sırasında hata oluştu';
+					selectedCustomerInfo.className = 'selected-customer-info error';
+					selectedCustomerInfo.style.display = 'block';
+				}
+			} catch (error) {
+				console.error('Error searching customers:', error);
+				selectedCustomerInfo.textContent = '❌ Arama sırasında hata oluştu';
+				selectedCustomerInfo.className = 'selected-customer-info error';
+				selectedCustomerInfo.style.display = 'block';
+			}
+		}
+
+		async function loadServicesForAppointment() {
+			try {
+				const response = await fetch('/api/barbers/me/services', {
+					credentials: 'include'
+				});
+
+				if (response.ok) {
+					const services = await response.json();
+					const serviceSelect = document.getElementById('appointmentServiceId');
+					serviceSelect.innerHTML = '<option value="">Hizmet seçin...</option>';
+
+					services.forEach(serviceOffered => {
+						// API'den gelen veri yapısına göre service bilgilerini al
+						let serviceName, serviceDuration, serviceId;
+
+						if (serviceOffered.service) {
+							// Populate edilmiş durumda
+							serviceName = serviceOffered.service.name || 'İsimsiz Hizmet';
+							serviceDuration = serviceOffered.duration || serviceOffered.service.duration || 'Belirsiz';
+							serviceId = serviceOffered.service._id;
+						} else {
+							// Direkt serviceOffered içinde bilgiler var
+							serviceName = serviceOffered.name || 'İsimsiz Hizmet';
+							serviceDuration = serviceOffered.duration || 'Belirsiz';
+							serviceId = serviceOffered._id;
+						}
+
+						const option = document.createElement('option');
+						option.value = serviceId;
+						option.textContent = `${serviceName} (${serviceDuration} dk)`;
+						serviceSelect.appendChild(option);
+					});
+
+					// Debug için console.log ekleyelim
+					console.log('Services for appointment:', services);
+				}
+			} catch (error) {
+				console.error('Error loading services:', error);
+			}
+		}
+
+		function initializeAppointmentTimePicker() {
+			const timeInput = document.getElementById('appointmentTime');
+
+			// Initialize Flatpickr for appointment time
+			flatpickr(timeInput, {
+				enableTime: true,
+				noCalendar: true,
+				dateFormat: "H:i",
+				time_24hr: true,
+				defaultHour: 9,
+				defaultMinute: 0,
+				minuteIncrement: 15,
+				locale: "tr",
+				theme: "dark"
+			});
+		}
+
+		async function handleAddAppointmentSubmit(e) {
+			e.preventDefault();
+
+			const registeredTab = document.getElementById('registeredTab');
+			const isRegistered = registeredTab.classList.contains('active');
+
+			let appointmentData = {
+				serviceId: document.getElementById('appointmentServiceId').value,
+				startTime: `${document.getElementById('appointmentDate').value}T${document.getElementById('appointmentTime').value}:00`
+			};
+
+			// Validation
+			if (!appointmentData.serviceId) {
+				alert('Lütfen bir hizmet seçin');
+				return;
+			}
+
+			if (!document.getElementById('appointmentDate').value || !document.getElementById('appointmentTime').value) {
+				alert('Lütfen tarih ve saat seçin');
+				return;
+			}
+
+			if (isRegistered) {
+				const customerId = document.getElementById('customerId').value;
+				if (!customerId) {
+					alert('Lütfen bir müşteri seçin');
+					return;
+				}
+				appointmentData.customerId = customerId;
+			} else {
+				const guestName = document.getElementById('guestName').value.trim();
+				const guestSurname = document.getElementById('guestSurname').value.trim();
+				const guestPhone = document.getElementById('guestPhone').value.trim();
+
+				if (!guestName || !guestSurname || !guestPhone) {
+					alert('Lütfen tüm misafir bilgilerini doldurun');
+					return;
+				}
+
+				appointmentData.guestName = guestName;
+				appointmentData.guestSurname = guestSurname;
+				appointmentData.guestPhone = guestPhone;
+			}
+
+			try {
+				const response = await fetch('/api/appointments/by-barber', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					credentials: 'include',
+					body: JSON.stringify(appointmentData)
+				});
+
+				if (response.ok) {
+					hideAddAppointmentModal();
+					await fetchMyAppointments(); // Refresh appointments list
+					alert('Randevu başarıyla oluşturuldu!');
+				} else {
+					const error = await response.json();
+					throw new Error(error.message || 'Randevu oluşturulurken hata oluştu');
+				}
+			} catch (error) {
+				console.error('Error:', error);
+				alert('Randevu oluşturulurken hata oluştu: ' + error.message);
 			}
 		}
 
