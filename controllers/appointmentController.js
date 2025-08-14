@@ -177,18 +177,25 @@ const createAppointment = async (req, res) => {
 	try {
 		const customerId = req.user.id;
 		const { barberId, serviceId, startTime } = req.body;
-		const serviceDuration = 60;
+
 
 		if (!barberId || !serviceId || !startTime) {
 			return res.status(400).json({ message: 'Berber, hizmet ve başlangıç saati zorunludur.' });
 		}
-		const service = await Service.findById(serviceId);
-		if (!service) {
+		const barber = await User.findById(barberId);
+		if (!barber || barber.role !== 'barber' || !barber.barberProfile) {
+			return res.status(404).json({ message: 'Geçerli bir berber bulunamadı.' });
+		}
+		const offeredService = barber.barberProfile.servicesOffered.find(
+			s => s.service.toString() === serviceId
+		);
+		if (!offeredService) {
 			return res.status(404).json({ message: 'Hizmet bulunamadı.' });
 		}
+		const serviceDuration = offeredService.duration;
 
 		const appointmentStartTime = new Date(startTime);
-		const appointmentEndTime = new Date(appointmentStartTime.getTime() + service.duration * 60 * 1000);
+		const appointmentEndTime = new Date(appointmentStartTime.getTime() + serviceDuration * 60 * 1000);
 
 		const existingAppointment = await Appointment.findOne({
 			barber: barberId,
@@ -272,7 +279,7 @@ const createAppointmentByBarber = async (req, res) => {
 	try {
 		const barber = req.user;
 		barber.populate('barberProfile.servicesOffered.service', 'name');
-		
+
 		const { customerId,         // Kayıtlı müşteri varsa ID'si gelecek
 			guestName,          // Misafir ise adı
 			guestSurname,       // Misafir ise soyadı

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleWares/authMiddleware');
 
-const { getBarberProfile, updateBarberProfile, getBarbers, updateMyServices, getMyServices,toggleServiceStatus ,updateBarberServiceDetails, getMyAvailability, updateMyAvailability,getMyTimeOffs,addMyTimeOffs,deleteMyTimeOff } = require('../controllers/barberController');
+const { getBarberProfile, updateBarberProfile, getBarbers, updateMyServices, getMyServices,toggleServiceStatus ,updateBarberServiceDetails, getMyAvailability, updateMyAvailability,getMyTimeOffs,addMyTimeOffs,deleteMyTimeOff, getServicesByBarber } = require('../controllers/barberController');
 
 router.get('/getBarbers', getBarbers);
 router.get('/:id', protect, getBarberProfile);
@@ -19,5 +19,5 @@ router.put('/me/availability',protect,updateMyAvailability);
 router.get('/me/timeOffs',protect,getMyTimeOffs);
 router.post('/me/timeOffs',protect,addMyTimeOffs);
 router.delete('/me/timeOffs/:timeOffId',protect,deleteMyTimeOff);
-
+router.get('/:id/services',getServicesByBarber)
 module.exports = router;

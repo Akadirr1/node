@@ -217,7 +217,6 @@ const getMyTimeOffs = async (req, res) => {
 		res.status(500).json({ message: 'İzinler getirilirken bir sunucu hatası oluştu.' });
 	}
 }
-
 const addMyTimeOffs = async (req, res) => {
 	try {
 		const barberId = req.user.id;
@@ -263,6 +262,24 @@ const deleteMyTimeOff = async (req, res) => {
 
 	}
 }
+const getServicesByBarber = async (req, res) => {
+	try {
+		const { id } = req.params;
+		console.log(id);
+		const barber = await User.findById(id).select('barberProfile.servicesOffered').populate('barberProfile.servicesOffered.service');
+
+		if (!barber || !barber.barberProfile) {
+			return res.status(404).json({ message: 'Berber veya profil bilgileri bulunamadı.' });
+		}
+		const activeServices = barber.barberProfile.servicesOffered.filter(offeredService => offeredService.isActive);
+		res.status(200).json(activeServices);
+
+	} catch (error) {
+		console.error("Berberin hizmetleri getirilirken hata:", error);
+		res.status(500).json({ message: 'Hizmetler getirilirken bir sunucu hatası oluştu.' });
+
+	}
+}
 module.exports = {
 	getBarberProfile,
 	updateBarberProfile,
@@ -275,5 +292,6 @@ module.exports = {
 	getMyAvailability,
 	getMyTimeOffs,
 	addMyTimeOffs,
-	deleteMyTimeOff
+	deleteMyTimeOff,
+	getServicesByBarber
 };

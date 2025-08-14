@@ -2,9 +2,35 @@
 
 	<div class="booking-container">
 		<div class="container-fluid">
+			<!-- Barber Selection Step -->
+			<div id="barberSelection">
+				<h1 class="section-title">Berber Seçin</h1>
+
+				<!-- Loading Spinner for Barbers -->
+				<div id="barberLoading" class="text-center">
+					<div class="spinner-border" role="status">
+						<span class="sr-only">Yükleniyor...</span>
+					</div>
+				</div>
+
+				<!-- Error Message for Barbers -->
+				<div id="barberErrorMessage" class="error-message" style="display: none;"></div>
+
+				<!-- Barbers Grid -->
+				<div id="barbersGrid" class="barbers-grid" style="display: none;">
+					<!-- Barber cards will be inserted here -->
+				</div>
+			</div>
+
 			<!-- Service Selection Step -->
-			<div id="serviceSelection">
-				<h1 class="section-title">Choose a Service</h1>
+			<div id="serviceSelection" style="display: none;">
+				<button class="btn btn-secondary mb-3" onclick="goBackToBarberSelection()">
+					<i class="fas fa-arrow-left"></i> Berbere Geri Dön
+				</button>
+				<h1 class="section-title">Hizmet Seçin</h1>
+				<div class="selected-barber-info">
+					<h5>Seçilen Berber: <span id="selectedBarberName"></span></h5>
+				</div>
 
 				<!-- Loading Spinner for Services -->
 				<div id="serviceLoading" class="text-center">
@@ -22,49 +48,24 @@
 				</div>
 			</div>
 
-			<!-- Barber Selection Step -->
-			<div id="barberSelection" style="display: none;">
+			<!-- Calendar Step -->
+			<div id="calendarSelection" style="display: none;">
 				<button class="btn btn-secondary mb-3" onclick="goBackToServiceSelection()">
 					<i class="fas fa-arrow-left"></i> Hizmete Geri Dön
 				</button>
-				<h1 class="section-title">Our Barbers</h1>
-				<div class="selected-service-info">
-					<h5>Seçilen Hizmet: <span id="selectedServiceName"></span></h5>
-					<p>Süre: <span id="selectedServiceDuration"></span> dakika | Fiyat: <span
-							id="selectedServicePrice"></span>₺</p>
-				</div>
-
-				<!-- Loading Spinner -->
-				<div id="loading" class="text-center">
-					<div class="spinner-border" role="status">
-						<span class="sr-only">Yükleniyor...</span>
-					</div>
-				</div>
-
-				<!-- Error Message -->
-				<div id="errorMessage" class="error-message" style="display: none;"></div>
-
-				<!-- Barbers Grid -->
-				<div id="barbersGrid" class="barbers-grid" style="display: none;">
-					<!-- Barber cards will be inserted here -->
-				</div>
-			</div>
-
-			<!-- Calendar Step -->
-			<div id="calendarSelection" style="display: none;">
-				<button class="btn btn-secondary mb-3" onclick="goBackToBarberSelection()">
-					<i class="fas fa-arrow-left"></i> Berbere Geri Dön
-				</button>
-				<h2 class="text-center mb-4">Tarih Seçin - <span id="selectedBarberName"></span></h2>
+				<h2 class="text-center mb-4">Tarih Seçin</h2>
 				<div class="selected-info">
 					<div class="row">
-						<div class="col-md-6">
+						<div class="col-md-4">
+							<strong>Berber:</strong> <span id="selectedBarberNameCalendar"></span>
+						</div>
+						<div class="col-md-4">
 							<strong>Hizmet:</strong> <span id="selectedServiceNameCalendar"></span>
 						</div>
-						<div class="col-md-3">
-							<strong>Süre:</strong> <span id="selectedServiceDurationCalendar"></span> dakika
+						<div class="col-md-2">
+							<strong>Süre:</strong> <span id="selectedServiceDurationCalendar"></span> dk
 						</div>
-						<div class="col-md-3">
+						<div class="col-md-2">
 							<strong>Fiyat:</strong> <span id="selectedServicePriceCalendar"></span>₺
 						</div>
 					</div>
@@ -508,32 +509,104 @@
 				return;
 			}
 
-			fetchServices();
+			fetchBarbers(); // Artık önce berber listesini çek
 		});
 
-		async function fetchServices() {
+		async function fetchBarbers() {
+			const loading = document.getElementById('barberLoading');
+			const errorMessage = document.getElementById('barberErrorMessage');
+			const barbersGrid = document.getElementById('barbersGrid');
+
+			try {
+				const response = await fetch('/api/barbers/getBarbers');
+
+				loading.style.display = 'none';
+
+				if (response.ok) {
+					const barbers = await response.json();
+					if (barbers && barbers.length > 0) {
+						barbersGrid.style.display = 'block';
+						renderBarbers(barbers);
+					} else {
+						errorMessage.textContent = 'Henüz hiç berber bulunamadı.';
+						errorMessage.style.display = 'block';
+					}
+				} else {
+					errorMessage.textContent = 'Berberler yüklenirken bir hata oluştu.';
+					errorMessage.style.display = 'block';
+				}
+			} catch (error) {
+				loading.style.display = 'none';
+				errorMessage.textContent = 'Berberler yüklenirken bir hata oluştu.';
+				errorMessage.style.display = 'block';
+				console.error('Error fetching barbers:', error);
+			}
+		}
+
+		function renderBarbers(barbers) {
+			const barbersGrid = document.getElementById('barbersGrid');
+			barbersGrid.innerHTML = '';
+
+			barbers.forEach(barber => {
+				const barberCard = `
+					<div class="barber-card" onclick="selectBarber('${barber._id}', '${barber.name} ${barber.surname}')">
+						<div class="barber-image">
+							<i class="fas fa-user-tie"></i>
+						</div>
+						<div class="barber-info">
+							<h4>${barber.name} ${barber.surname}</h4>
+							<p class="barber-phone">${barber.phoneNumber || 'Telefon bilgisi yok'}</p>
+						</div>
+					</div>
+				`;
+				barbersGrid.innerHTML += barberCard;
+			});
+		}
+
+		async function selectBarber(barberId, barberName) {
+			selectedBarberId = barberId;
+			document.getElementById('selectedBarberName').textContent = barberName;
+
+			// Hide barber selection and show service selection
+			document.getElementById('barberSelection').style.display = 'none';
+			document.getElementById('serviceSelection').style.display = 'block';
+
+			// Fetch services for selected barber
+			await fetchServicesForBarber(barberId);
+		}
+
+		async function fetchServicesForBarber(barberId) {
 			const loading = document.getElementById('serviceLoading');
 			const errorMessage = document.getElementById('serviceErrorMessage');
 			const servicesGrid = document.getElementById('servicesGrid');
 
+			loading.style.display = 'block';
+			errorMessage.style.display = 'none';
+			servicesGrid.style.display = 'none';
+
 			try {
-				const response = await fetch('/api/services');
-				const data = await response.json();
+				const response = await fetch(`/api/barbers/${barberId}/services`);
 
 				loading.style.display = 'none';
 
-				if (response.ok && data.length > 0) {
-					servicesGrid.style.display = 'flex';
-					renderServices(data);
+				if (response.ok) {
+					const services = await response.json();
+					if (services && services.length > 0) {
+						servicesGrid.style.display = 'flex';
+						renderServices(services);
+					} else {
+						errorMessage.textContent = 'Bu berber için henüz hizmet bulunamadı.';
+						errorMessage.style.display = 'block';
+					}
 				} else {
-					errorMessage.textContent = 'Hizmet bulunamadı.';
+					errorMessage.textContent = 'Hizmetler yüklenirken bir hata oluştu.';
 					errorMessage.style.display = 'block';
 				}
 			} catch (error) {
 				loading.style.display = 'none';
 				errorMessage.textContent = 'Hizmetler yüklenirken bir hata oluştu.';
 				errorMessage.style.display = 'block';
-				console.error('Error fetching services:', error);
+				console.error('Error fetching services for barber:', error);
 			}
 		}
 
@@ -541,16 +614,17 @@
 			const servicesGrid = document.getElementById('servicesGrid');
 			servicesGrid.innerHTML = '';
 
-			services.forEach(service => {
+			services.forEach(offeredService => {
+				const service = offeredService.service; // Berber hizmetlerinden service objesini al
 				const serviceCard = document.createElement('div');
 				serviceCard.className = 'service-card';
 				serviceCard.innerHTML = `
 					<div class="service-content">
 						<div class="service-name">${service.name}</div>
-						<div class="service-price">${service.price}₺</div>
-						<div class="service-duration">${service.duration} dakika</div>
+						<div class="service-price">${offeredService.price}₺</div>
+						<div class="service-duration">${offeredService.duration} dakika</div>
 					</div>
-					<button class="select-service-btn" onclick="selectService('${service._id}', '${service.name}', ${service.duration}, ${service.price})">
+					<button class="select-service-btn" onclick="selectService('${service._id}', '${service.name}', ${offeredService.duration}, ${offeredService.price})">
 						Hizmeti Seç
 					</button>
 				`;
@@ -569,99 +643,35 @@
 			};
 
 			// Update service info displays
-			document.getElementById('selectedServiceName').textContent = serviceName;
-			document.getElementById('selectedServiceDuration').textContent = serviceDuration;
-			document.getElementById('selectedServicePrice').textContent = servicePrice;
 			document.getElementById('selectedServiceNameCalendar').textContent = serviceName;
 			document.getElementById('selectedServiceDurationCalendar').textContent = serviceDuration;
 			document.getElementById('selectedServicePriceCalendar').textContent = servicePrice;
+			document.getElementById('selectedBarberNameCalendar').textContent = document.getElementById('selectedBarberName').textContent;
 
-			// Hide service selection and show barber selection
+			// Hide service selection and show calendar
+			document.getElementById('serviceSelection').style.display = 'none';
+			document.getElementById('calendarSelection').style.display = 'block';
+
+			// Initialize calendar
+			updateCalendar();
+		}
+
+		// Hide service selection and show barber selection
+		function goBackToBarberSelection() {
 			document.getElementById('serviceSelection').style.display = 'none';
 			document.getElementById('barberSelection').style.display = 'block';
-
-			// Fetch barbers
-			fetchBarbers();
+			selectedServiceId = null;
+			selectedService = null;
 		}
 
 		function goBackToServiceSelection() {
-			document.getElementById('barberSelection').style.display = 'none';
-			document.getElementById('serviceSelection').style.display = 'block';
-			selectedServiceId = null;
-			selectedService = null;
-			selectedBarberId = null;
-		}
-
-		async function fetchBarbers() {
-			const loading = document.getElementById('loading');
-			const errorMessage = document.getElementById('errorMessage');
-			const barbersGrid = document.getElementById('barbersGrid');
-
-			try {
-				const response = await fetch('/api/barbers/getBarbers');
-				const data = await response.json();
-
-				loading.style.display = 'none';
-
-				if (response.ok && data.length > 0) {
-					barbersGrid.style.display = 'flex';
-					renderBarbers(data);
-				} else {
-					errorMessage.textContent = 'Berber bulunamadı.';
-					errorMessage.style.display = 'block';
-				}
-			} catch (error) {
-				loading.style.display = 'none';
-				errorMessage.textContent = 'Berberler yüklenirken bir hata oluştu.';
-				errorMessage.style.display = 'block';
-				console.error('Error fetching barbers:', error);
-			}
-		}
-
-		function renderBarbers(barbers) {
-			const barbersGrid = document.getElementById('barbersGrid');
-			barbersGrid.innerHTML = '';
-
-			barbers.forEach(barber => {
-				// Create specialization text
-				const specialization = barber.specialization || 'Expert in classic cuts and styling.';
-
-				const barberCard = document.createElement('div');
-				barberCard.className = 'barber-card';
-				barberCard.innerHTML = `
-					<div class="barber-content">
-						<div class="barber-name">${barber.name}</div>
-						<div class="barber-specialization">${specialization}</div>
-					</div>
-					<button class="book-now-btn" onclick="selectBarber('${barber._id}', '${barber.name} ${barber.surname}')">
-						Book Now
-					</button>
-				`;
-
-				barbersGrid.appendChild(barberCard);
-			});
-		}
-
-		function selectBarber(barberId, barberName) {
-			selectedBarberId = barberId;
-			localStorage.setItem('selectedBarberId', barberId);
-			localStorage.setItem('selectedBarberName', barberName);
-
-			document.getElementById('selectedBarberName').textContent = barberName;
-			document.getElementById('barberSelection').style.display = 'none';
-			document.getElementById('calendarSelection').style.display = 'block';
-
-			generateCalendar();
-		}
-
-		function goBackToBarberSelection() {
 			document.getElementById('calendarSelection').style.display = 'none';
-			document.getElementById('barberSelection').style.display = 'block';
-			selectedBarberId = null;
+			document.getElementById('serviceSelection').style.display = 'block';
 			selectedDate = null;
 		}
 
-		function generateCalendar() {
+		// Calendar functions
+		function updateCalendar() {
 			const calendarTitle = document.getElementById('calendarTitle');
 			const calendarDays = document.getElementById('calendarDays');
 
