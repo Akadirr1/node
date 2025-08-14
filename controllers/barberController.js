@@ -182,7 +182,7 @@ const updateMyAvailability = async (req, res) => {
 		if (!Array.isArray(availability)) {
 			return res.status(400).json({ message: 'Program verisi bir dizi formatında gönderilmelidir.' });
 		}
-		const updatedBarber  = await User.findByIdAndUpdate(barberId, {
+		const updatedBarber = await User.findByIdAndUpdate(barberId, {
 			$set: { 'barberProfile.standardAvailability': availability }
 		},
 			{ new: true, runValidators: true }
@@ -200,6 +200,69 @@ const updateMyAvailability = async (req, res) => {
 
 	}
 }
+const getMyTimeOffs = async (req, res) => {
+	try {
+		const barberId = req.user.id;
+
+		const user = await User.findById(barberId).select('barberProfile.timeOffs')
+		if (!user || !user.barberProfile) {
+			return res.status(404).json({
+				message: 'Berber profili veya izinleri bulunamadı.'
+			})
+		}
+		const sortedTimeOffs = user.barberProfile.timeOffs.sort((a, b) => a.startTime - b.startTime)
+		res.status(200).json(sortedTimeOffs)
+	} catch (error) {
+		console.error("İzinler getirilirken hata:", error);
+		res.status(500).json({ message: 'İzinler getirilirken bir sunucu hatası oluştu.' });
+	}
+}
+
+const addMyTimeOffs = async (req, res) => {
+	try {
+		const barberId = req.user.id;
+
+		const { reason, startTime, endTime } = req.body;
+		if (!startTime || !endTime) {
+			return res.status(400).json({ message: 'Başlangıç ve bitiş zamanı zorunludur.' });
+		}
+		const barber = await User.findById(barberId);
+		if (!barber || !barber.barberProfile) {
+			return res.status(404).json({ message: 'Berber profili bulunamadı.' });
+		}
+		barber.barberProfile.timeOffs.push({ reason, startTime, endTime });
+		await barber.save();
+
+		res.status(201).json({
+			message: 'Yeni izin başarıyla eklendi.',
+			timeOffs: barber.barberProfile.timeOffs
+		})
+	} catch (error) {
+		console.error("İzin eklenirken hata:", error);
+		res.status(500).json({ message: 'İzin eklenirken bir sunucu hatası oluştu.' })
+	}
+}
+const deleteMyTimeOff = async (req, res) => {
+	try {
+		const barberId = req.user.id;
+		const { timeOffId } = req.params;
+		const barber = await User.findById(barberId);
+		if (!barber || !barber.barberProfile) {
+			return res.status(404).json({ message: 'Berber profili bulunamadı.' });
+		}
+		barber.barberProfile.timeOffs.pull({ _id: timeOffId })
+
+		await barber.save();
+		res.status(200).json({
+			message: 'İzin başarıyla silindi.',
+			timeOffId: timeOffId
+		});
+	} catch (error) {
+		console.error("İzin silinirken hata:", error);
+		res.status(500).json({ message: 'İzin silinirken bir sunucu hatası oluştu.' });
+
+	}
+}
 module.exports = {
 	getBarberProfile,
 	updateBarberProfile,
@@ -209,5 +272,8 @@ module.exports = {
 	toggleServiceStatus,
 	updateBarberServiceDetails,
 	updateMyAvailability,
-	getMyAvailability
+	getMyAvailability,
+	getMyTimeOffs,
+	addMyTimeOffs,
+	deleteMyTimeOff
 };

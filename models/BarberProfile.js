@@ -38,7 +38,7 @@ const timeOffSchema = new Schema({
 		type: Date,
 		required: true
 	}
-}, { _id: false });
+});
 const barberServiceSchema = new Schema({
 
 	service: {
