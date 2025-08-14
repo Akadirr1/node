@@ -265,7 +265,6 @@ const deleteMyTimeOff = async (req, res) => {
 const getServicesByBarber = async (req, res) => {
 	try {
 		const { id } = req.params;
-		console.log(id);
 		const barber = await User.findById(id).select('barberProfile.servicesOffered').populate('barberProfile.servicesOffered.service');
 
 		if (!barber || !barber.barberProfile) {

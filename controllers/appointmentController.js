@@ -12,25 +12,30 @@ const getAvailableSlots = async (req, res) => {
 		if (!date || !serviceId) {
 			return res.status(400).json({ message: 'Lütfen bir tarih ve hizmet seçin.' })
 		}
-		const service = await Service.findById(serviceId);
+		const barber = await User.findById(barberId);
+		barber.populate('barberProfile.servicesOffered.service', 'name');
+
+		if (!barber || barber.role !== 'barber' || !barber.barberProfile) {
+            return res.status(404).json({ message: 'Berber bulunamadı.' });
+        }
+		const service = barber.barberProfile.servicesOffered.find(
+			s => s.service._id.toString() === serviceId
+		)
+
+		//const service = await Service.findById(serviceId);
 		if (!service) {
 			return res.status(404).json({ message: 'Seçilen hizmet bulunamadı.' });
 		}
+
 		const serviceDuration = service.duration;
+		console.log(serviceDuration);
 		const selectedDate = new Date(date + 'T00:00:00.000Z'); // Force UTC
 		const startOfDay = new Date(selectedDate);
 		startOfDay.setUTCHours(0, 0, 0, 0);
 		const endOfDay = new Date(selectedDate);
 		endOfDay.setUTCHours(23, 59, 59, 999);
 
-		const barber = await User.findById(barberId);
-		if (!barber || barber.role !== 'barber') {
-			return res.status(404).json({ message: 'Berber bulunamadı.' });
-		}
-		// barberProfile kontrolü ekle
-		if (!barber.barberProfile) {
-			return res.status(400).json({ message: 'Berber profili bulunamadı.' });
-		}
+
 
 		// İptal edilmiş randevuları sil
 		await Appointment.deleteMany({
@@ -49,21 +54,23 @@ const getAvailableSlots = async (req, res) => {
 			app.startTime >= startOfDay &&
 			app.startTime <= endOfDay
 		);
+		console.log(appointmentsOnDay);
 		let busySlots = [
 			...barber.barberProfile.timeOffs.map(off => ({ startTime: off.startTime, endTime: off.endTime })),
 			...appointmentsOnDay.map(appt => ({ startTime: appt.startTime, endTime: appt.endTime }))
 		];
 		busySlots.sort((a, b) => a.startTime - b.startTime);
+		console.log(busySlots);
+
 		// --- 3. "BOŞ ZAMAN ARALIKLARINI" (GAPS) HESAPLAMA ---
 		const schedule = barber.barberProfile.standardAvailability.find(d => d.dayOfWeek === startOfDay.getUTCDay());
 		if (!schedule) {
 			return res.json([]); // O gün çalışma günü değil.
 		}
-
+		console.log(schedule);
 		const [startH, startM] = schedule.startTime.split(':').map(Number);
 		const workStartTime = new Date(startOfDay);
 		workStartTime.setUTCHours(startH, startM, 0, 0);
-
 		const [endH, endM] = schedule.endTime.split(':').map(Number);
 		const workEndTime = new Date(startOfDay);
 		workEndTime.setUTCHours(endH, endM, 0, 0);
@@ -78,7 +85,7 @@ const getAvailableSlots = async (req, res) => {
 			}
 			previousEndTime = busySlot.endTime > previousEndTime ? busySlot.endTime : previousEndTime;
 		});
-
+		console.log(busySlots);
 		// Son meşguliyetten gün sonuna kadar olan boşluğu da ekle
 		if (workEndTime > previousEndTime) {
 			gaps.push({ gapStart: previousEndTime, gapEnd: workEndTime });
@@ -98,7 +105,7 @@ const getAvailableSlots = async (req, res) => {
 				}
 			}
 		});
-
+		console.log(availableSlots);
 		res.status(200).json(availableSlots);
 		//console.log(appointmentsOnDay);
 		//const dayOfWeek = startOfDay.getDay();
