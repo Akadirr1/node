@@ -97,8 +97,8 @@ const toggleServiceStatus = async (req, res) => {
 
 		const { serviceId } = req.params;
 
-        const barber = await User.findById(barberId).populate('barberProfile.servicesOffered.service', 'name');
-;
+		const barber = await User.findById(barberId).populate('barberProfile.servicesOffered.service', 'name');
+		;
 		if (!barber || !barber.barberProfile) {
 			return res.status(404).json({ message: 'Berber profili bulunamadı.' });
 		}
@@ -158,6 +158,48 @@ const updateBarberServiceDetails = async (req, res) => {
 		res.status(500).json({ message: 'Hizmet detayları güncellenirken bir sunucu hatası oluştu.' });
 	}
 }
+const getMyAvailability = async (req, res) => {
+	try {
+		const barberId = req.user.id;
+
+		const user = await User.findById(barberId).select('barberProfile.standardAvailability');
+		if (!user || !user.barberProfile) {
+			return res.status(404).json({ message: 'Berber profili veya çalışma programı bulunamadı.' });
+		}
+		res.status(200).json(user.barberProfile.standardAvailability);
+
+	} catch (error) {
+		console.error("Berberin programı getirilirken hata:", error);
+		res.status(500).json({ message: 'Program getirilirken bir sunucu hatası oluştu.' });
+
+	}
+}
+const updateMyAvailability = async (req, res) => {
+	try {
+		const barberId = req.user.id;
+
+		const { availability } = req.body;
+		if (!Array.isArray(availability)) {
+			return res.status(400).json({ message: 'Program verisi bir dizi formatında gönderilmelidir.' });
+		}
+		const updatedBarber  = await User.findByIdAndUpdate(barberId, {
+			$set: { 'barberProfile.standardAvailability': availability }
+		},
+			{ new: true, runValidators: true }
+		).select('barberProfile.standardAvailability');
+		if (!updatedBarber) {
+			return res.status(404).json({ message: 'Berber bulunamadı.' });
+		}
+		res.status(200).json({
+			message: 'Haftalık çalışma programınız başarıyla güncellendi.',
+			availability: updatedBarber.barberProfile.standardAvailability
+		})
+	} catch (error) {
+		console.error("Berber programı güncellenirken hata:", error);
+		res.status(500).json({ message: 'Program güncellenirken bir sunucu hatası oluştu.' });
+
+	}
+}
 module.exports = {
 	getBarberProfile,
 	updateBarberProfile,
@@ -165,5 +207,7 @@ module.exports = {
 	updateMyServices,
 	getMyServices,
 	toggleServiceStatus,
-	updateBarberServiceDetails
+	updateBarberServiceDetails,
+	updateMyAvailability,
+	getMyAvailability
 };
