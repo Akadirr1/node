@@ -2141,10 +2141,29 @@
 				if (response.ok) {
 					const timeOffsData = await response.json();
 
-					if (timeOffsData.length > 0) {
+					// Past end dates should not be shown
+					const now = new Date();
+					const upcomingOrOngoing = timeOffsData.filter(to => {
+						let end = null;
+						if (to.endTime) {
+							end = new Date(to.endTime);
+						} else if (to.endDate) {
+							end = new Date(to.endDate);
+							// If only a date is provided, consider the end of that day
+							end.setHours(23, 59, 59, 999);
+						}
+						// If no end provided, keep it (defensive)
+						if (!end || isNaN(end.getTime())) return true;
+						return end >= now;
+					});
+
+					if (upcomingOrOngoing.length > 0) {
 						timeOffsList.style.display = 'grid';
-						renderTimeOffs(timeOffsData);
+						renderTimeOffs(upcomingOrOngoing);
 					} else {
+						// Clear any previous items and show empty state
+						timeOffsList.innerHTML = '';
+						timeOffsList.style.display = 'none';
 						noTimeOffs.style.display = 'block';
 					}
 				} else if (response.status === 401) {

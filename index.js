@@ -6,7 +6,7 @@ const userRoutes = require('./routes/userRoutes');
 const barberRoutes = require('./routes/barberRoutes');
 const appointmentRoutes= require('./routes/appointmentRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
-const port = 3000;
+const port = 3002;
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 dotenv.config();
