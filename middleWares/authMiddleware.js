@@ -22,5 +22,15 @@ const protect = async (req, res, next) => {
 		res.status(401).json({ message: 'Yetkiniz yok, token bulunamadı.' });
 	}
 }
-
-module.exports = {protect};
+const adminOnly = (req, res, next) => {
+    // 'protect' middleware'i daha önce çalışıp 'req.user' objesini doldurduğu için
+    // burada req.user'ın var olduğunu ve dolu olduğunu varsayabiliriz.
+    if (req.user && req.user.role === 'admin') {
+        // Eğer kullanıcı admin ise, bir sonraki adıma geçmesine izin ver.
+        next();
+    } else {
+        // Eğer admin değilse, 403 Forbidden (Yasak) hatası döndür.
+        res.status(403).json({ message: 'Bu işlemi yapmaya yetkiniz yok. Sadece adminler erişebilir.' });
+    }
+};
+module.exports = {protect,adminOnly};
