@@ -279,10 +279,44 @@ const createAppointmentByBarber = async (req, res) => {
 
 	}
 }
+const updateAppointmentStatus = async (req, res) => {
+	try {
+		const { id } = req.params;
+		const { status } = req.body;
+		const user = req.user;
+
+		const allowedStatusUpdates = ['completed', 'no_show'];
+		if (!allowedStatusUpdates) {
+			return res.status(400).json({ message: 'Geçersiz durum güncellemesi.' })
+		}
+
+		const appointment = await Appointment.findById(id);
+
+		if (!appointment) {
+			return res.status(400).json({ message: 'randevu bulunamadı' })
+		}
+		if (appointment.barber.toString() !== user.id) {
+			return res.status(403).json({ message: 'Bu islemi yapma yetkiniz yok!' })
+		}
+		if (appointment.status !== 'scheduled') {
+			return res.status(400).json({ message: `bu randevunun durumu ${appointment.status} olarak ayarlanmış` })
+		}
+
+		appointment.status= status;
+		await appointment.save();
+
+		res.status(200).json({message:`Randevu durumu başarı ile ${appointment.status} olarak güncellendi.`})
+	} catch (error) {
+		console.error("Randevu durumu güncellenirken hata:", error);
+		res.status(500).json({ message: 'Randevu durumu güncellenirken bir sunucu hatası oluştu.' });
+
+	}
+}
 module.exports = {
 	getAvailableSlots,
 	createAppointment,
 	getMyBarberAppointments,
 	cancelAppointment,
-	createAppointmentByBarber
+	createAppointmentByBarber,
+	updateAppointmentStatus 
 }
