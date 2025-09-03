@@ -84,8 +84,10 @@
 									</div>
 								</div>
 								<div class="summary-info">
-									<p><i class="fas fa-info-circle"></i> Takvimde bir güne tıklayarak o günün randevularını görüntüleyebilirsiniz.</p>
-									<p><i class="fas fa-calendar-check"></i> Randevulu günler takvimde yeşil nokta ile işaretlidir.</p>
+									<p><i class="fas fa-info-circle"></i> Takvimde bir güne tıklayarak o günün
+										randevularını görüntüleyebilirsiniz.</p>
+									<p><i class="fas fa-calendar-check"></i> Randevulu günler takvimde yeşil nokta ile
+										işaretlidir.</p>
 								</div>
 							</div>
 						</div>
@@ -95,7 +97,8 @@
 							<div class="empty-state">
 								<i class="fas fa-calendar-times fa-3x"></i>
 								<h3>Henüz Randevunuz Yok</h3>
-								<p>Manuel randevu ekleyebilir veya müşterilerinizin online randevu almasını bekleyebilirsiniz.</p>
+								<p>Manuel randevu ekleyebilir veya müşterilerinizin online randevu almasını
+									bekleyebilirsiniz.</p>
 							</div>
 						</div>
 					</div>
@@ -950,6 +953,36 @@
 
 		.day-cancel-btn:hover {
 			background: #ff3333;
+		}
+
+		/* Past Appointment Styles */
+		.past-appointment {
+			opacity: 0.7;
+			border-left: 4px solid #666;
+		}
+
+		.past-appointment .day-customer-name {
+			color: #999;
+		}
+
+		.past-appointment .day-appointment-time {
+			background: #555;
+			color: #ccc;
+		}
+
+		.past-appointment .day-service-name {
+			color: #999;
+		}
+
+		.past-appointment-badge {
+			background: #666;
+			color: #ccc;
+			padding: 5px 10px;
+			border-radius: 4px;
+			font-size: 11px;
+			text-align: center;
+			margin-top: 8px;
+			font-weight: 500;
 		}
 
 		.no-day-appointments {
@@ -2393,14 +2426,14 @@
 
 				if (response.ok) {
 					const appointments = await response.json();
-					
+
 					// Store appointments for calendar filter
 					allAppointments = appointments;
 
 					if (appointments.length > 0) {
 						appointmentsSummary.style.display = 'block';
 						renderAppointmentsSummary(appointments);
-						
+
 						// Update calendar to show appointment indicators
 						if (typeof renderFilterCalendar === 'function') {
 							renderFilterCalendar();
@@ -3499,7 +3532,7 @@
 
 			const firstDay = new Date(filterCurrentDate.getFullYear(), filterCurrentDate.getMonth(), 1);
 			const lastDay = new Date(filterCurrentDate.getFullYear(), filterCurrentDate.getMonth() + 1, 0);
-			
+
 			// Monday as first day (0 = Sunday, 1 = Monday)
 			let startDay = firstDay.getDay();
 			startDay = startDay === 0 ? 6 : startDay - 1;
@@ -3522,17 +3555,17 @@
 			for (let day = 1; day <= lastDay.getDate(); day++) {
 				const dayDate = new Date(currentYear, currentMonth, day);
 				let classes = '';
-				
+
 				// Check if it's today
 				if (dayDate.toDateString() === today.toDateString()) {
 					classes += ' today';
 				}
-				
+
 				// Check if it's selected
 				if (selectedFilterDate && dayDate.toDateString() === selectedFilterDate.toDateString()) {
 					classes += ' selected';
 				}
-				
+
 				// Check if has appointments
 				if (hasAppointmentsOnDate(dayDate)) {
 					classes += ' has-appointments';
@@ -3555,11 +3588,11 @@
 			const dayElement = document.createElement('div');
 			dayElement.className = `calendar-day-mini ${classes}`;
 			dayElement.textContent = day;
-			
+
 			if (!classes.includes('other-month')) {
 				dayElement.onclick = () => selectFilterDate(year, month, day);
 			}
-			
+
 			return dayElement;
 		}
 
@@ -3574,7 +3607,7 @@
 			selectedFilterDate = new Date(year, month, day);
 			renderFilterCalendar();
 			updateSelectedDateInfo();
-			
+
 			// Open modal with day's appointments
 			openDayAppointmentsModal(selectedFilterDate);
 		}
@@ -3606,11 +3639,11 @@
 		function updateSelectedDateInfo() {
 			const selectedDateInfo = document.getElementById('selectedDateInfo');
 			if (selectedFilterDate) {
-				const options = { 
-					weekday: 'long', 
-					year: 'numeric', 
-					month: 'long', 
-					day: 'numeric' 
+				const options = {
+					weekday: 'long',
+					year: 'numeric',
+					month: 'long',
+					day: 'numeric'
 				};
 				selectedDateInfo.textContent = `${selectedFilterDate.toLocaleDateString('tr-TR', options)} randevuları gösteriliyor`;
 			} else {
@@ -3657,11 +3690,11 @@
 			const noDayAppointments = document.getElementById('noDayAppointments');
 
 			// Set modal title
-			const options = { 
-				weekday: 'long', 
-				year: 'numeric', 
-				month: 'long', 
-				day: 'numeric' 
+			const options = {
+				weekday: 'long',
+				year: 'numeric',
+				month: 'long',
+				day: 'numeric'
 			};
 			modalTitle.textContent = date.toLocaleDateString('tr-TR', options);
 
@@ -3740,8 +3773,17 @@
 					serviceDuration = appointment.service.duration ? `${appointment.service.duration} dakika` : 'Bilinmiyor';
 				}
 
+				// Randevunun geçmiş olup olmadığını kontrol et
+				const now = new Date();
+				const isPastAppointment = dateObj < now;
+				const appointmentClass = isPastAppointment ? 'day-appointment-item past-appointment' : 'day-appointment-item';
+				const statusText = isPastAppointment ? 'Tamamlandı' : 'Planlandı';
+				const cancelButtonHtml = isPastAppointment ? 
+					'<div class="past-appointment-badge">Geçmiş Randevu</div>' : 
+					`<button class="day-cancel-btn" onclick="cancelAppointment('${appointment._id}')" id="day-cancel-${appointment._id}">Randevuyu İptal Et</button>`;
+
 				const appointmentElement = document.createElement('div');
-				appointmentElement.className = 'day-appointment-item';
+				appointmentElement.className = appointmentClass;
 				appointmentElement.innerHTML = `
 					<div class="day-appointment-header">
 						<div class="day-customer-name">${customerName}</div>
@@ -3762,12 +3804,10 @@
 						</div>
 						<div class="day-detail-item">
 							<div class="day-detail-label">Durum:</div>
-							<div class="day-detail-value">Planlandı</div>
+							<div class="day-detail-value">${statusText}</div>
 						</div>
 					</div>
-					<button class="day-cancel-btn" onclick="cancelAppointment('${appointment._id}')" id="day-cancel-${appointment._id}">
-						Randevuyu İptal Et
-					</button>
+					${cancelButtonHtml}
 				`;
 
 				dayAppointmentsList.appendChild(appointmentElement);
