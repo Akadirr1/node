@@ -62,7 +62,7 @@
 						<a class="nav-link" href="/admin-dashboard">Tüm Randevular</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link logout-btn" href="#" onclick="logoutUser(); return false;">Çıkış Yap</a>
+						<a class="nav-link logout-btn" href="#" id="logout-link">Çıkış Yap</a>
 					</li>
 				</ul>
 			</div>
@@ -168,6 +168,15 @@
 		document.addEventListener('DOMContentLoaded', async function () {
 			await checkUserStatus();
 			setActiveNavLink();
+			
+			// Logout button event listener
+			const logoutLink = document.getElementById('logout-link');
+			if (logoutLink) {
+				logoutLink.addEventListener('click', function(e) {
+					e.preventDefault();
+					logoutUser();
+				});
+			}
 		});
 
 		// Set active nav link based on current page
@@ -233,12 +242,27 @@
 
 		async function logoutUser() {
 			try {
+				console.log('Logout başlatılıyor...');
+				
 				// Cookie'yi temizlemek için logout endpoint'i çağır
 				const response = await fetch('/profile/logout', {
 					method: 'POST',
-					credentials: 'include'
+					credentials: 'include',
+					headers: {
+						'Content-Type': 'application/json'
+					}
 				});
 
+				console.log('Logout response:', response.status);
+
+				if (response.ok) {
+					const data = await response.json();
+					console.log('Logout başarılı:', data.message);
+				}
+
+				// LocalStorage'ı temizle
+				localStorage.removeItem('user');
+				
 				// Başarılı olsun ya da olmasın logout view'ı göster
 				showLoggedOutView();
 

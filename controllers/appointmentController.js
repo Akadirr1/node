@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Appointment = require('../models/Appointment');
+const smsService = require('../services/smsService');
 const mongoose = require('mongoose');
 const { set } = require('../models/BarberProfile');
 const Service = require('../models/Service');
@@ -94,69 +95,104 @@ const getAvailableSlots = async (req, res) => {
 }
 
 const createAppointment = async (req, res) => {
-	try {
-		const customerId = req.user.id;
-		const { barberId, serviceId, startTime } = req.body;
+    try {
+        const customerId = req.user.id;
+        const { barberId, serviceId, startTime } = req.body;
 
+        if (!barberId || !serviceId || !startTime) {
+            return res.status(400).json({ message: 'Berber, hizmet ve başlangıç saati zorunludur.' });
+        }
 
-		if (!barberId || !serviceId || !startTime) {
-			return res.status(400).json({ message: 'Berber, hizmet ve başlangıç saati zorunludur.' });
-		}
-		const barber = await User.findById(barberId); // barberProfile.timeOffs erişimi için
-		if (!barber || barber.role !== 'barber' || !barber.barberProfile) {
-			return res.status(404).json({ message: 'Geçerli bir berber bulunamadı.' });
-		}
-		const offeredService = barber.barberProfile.servicesOffered.find(
-			s => s.service.toString() === serviceId
-		);
-		if (!offeredService) {
-			return res.status(404).json({ message: 'Hizmet bulunamadı.' });
-		}
-		const serviceDuration = offeredService.duration;
+        const barber = await User.findById(barberId).populate('barberProfile.servicesOffered.service');
+        if (!barber || barber.role !== 'barber' || !barber.barberProfile) {
+            return res.status(404).json({ message: 'Geçerli bir berber bulunamadı.' });
+        }
 
-		const appointmentStartTime = new Date(startTime);
-		const appointmentEndTime = new Date(appointmentStartTime.getTime() + serviceDuration * 60 * 1000);
+        const customer = await User.findById(customerId);
+        if (!customer) {
+            return res.status(404).json({ message: 'Müşteri bulunamadı.' });
+        }
 
-		// Timeoff çakışmasını da engelle
-		const hasTimeOffOverlap = (barber.barberProfile?.timeOffs || []).some(off => {
-			const offStart = new Date(off.startTime);
-			const offEnd = new Date(off.endTime);
-			return appointmentStartTime < offEnd && appointmentEndTime > offStart;
-		});
-		if (hasTimeOffOverlap) {
-			return res.status(409).json({ message: 'Bu saat aralığı berberin izin saatlerine denk geliyor.' });
-		}
+        const offeredService = barber.barberProfile.servicesOffered.find(
+            s => s.service._id.toString() === serviceId
+        );
+        if (!offeredService) {
+            return res.status(404).json({ message: 'Hizmet bulunamadı.' });
+        }
 
-		const existingAppointment = await Appointment.findOne({
-			barber: barberId,
-			// Sadece başlangıç saatini değil, tüm zaman aralığını kontrol etmek daha güvenlidir.
-			$or: [
-				{ startTime: { $lt: appointmentEndTime, $gte: appointmentStartTime } },
-				{ endTime: { $gt: appointmentStartTime, $lte: appointmentEndTime } }
-			]
-		});
+        const serviceDuration = offeredService.duration;
+        const appointmentStartTime = new Date(startTime);
+        const appointmentEndTime = new Date(appointmentStartTime.getTime() + serviceDuration * 60 * 1000);
 
-		if (existingAppointment) {
-			return res.status(409).json({ message: 'Üzgünüz, bu saat dilimi az önce başkası tarafından alındı.' }); // 409 Conflict
-		}
+        // Check for timeoff overlap
+        const hasTimeOffOverlap = (barber.barberProfile?.timeOffs || []).some(off => {
+            const offStart = new Date(off.startTime);
+            const offEnd = new Date(off.endTime);
+            return appointmentStartTime < offEnd && appointmentEndTime > offStart;
+        });
 
-		const newAppointment = new Appointment({
-			customer: customerId,
-			barber: barberId,
-			service: serviceId,
-			startTime: appointmentStartTime,
-			endTime: appointmentEndTime,
+        if (hasTimeOffOverlap) {
+            return res.status(409).json({ message: 'Bu saat aralığı berberin izin saatlerine denk geliyor.' });
+        }
 
-		})
+        // Check for existing appointments
+        const existingAppointment = await Appointment.findOne({
+            barber: barberId,
+            status: { $in: ['scheduled', 'completed'] },
+            $or: [
+                { startTime: { $lt: appointmentEndTime, $gte: appointmentStartTime } },
+                { endTime: { $gt: appointmentStartTime, $lte: appointmentEndTime } }
+            ]
+        });
 
-		await newAppointment.save();
-		res.status(201).json({ message: 'Randevunuz başarıyla oluşturuldu.', appointment: newAppointment });
-	} catch (error) {
-		console.error("Randevu oluşturulurken hata:", error);
-		res.status(500).json({ message: 'Randevu oluşturulurken bir sunucu hatası oluştu.' });
+        if (existingAppointment) {
+            return res.status(409).json({ message: 'Üzgünüz, bu saat dilimi az önce başkası tarafından alındı.' });
+        }
 
-	}
-}
+        // Create appointment
+        const newAppointment = new Appointment({
+            customer: customerId,
+            barber: barberId,
+            service: serviceId,
+            startTime: appointmentStartTime,
+            endTime: appointmentEndTime,
+        });
+
+        await newAppointment.save();
+
+        // Send SMS confirmation to customer
+        const appointmentDate = appointmentStartTime.toLocaleDateString('tr-TR');
+        const appointmentTime = appointmentStartTime.toLocaleTimeString('tr-TR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+
+        const appointmentDetails = {
+            customerName: `${customer.name} ${customer.surname}`,
+            barberName: `${barber.name} ${barber.surname}`,
+            serviceName: offeredService.service.name,
+            date: appointmentDate,
+            time: appointmentTime
+        };
+
+        // Send confirmation SMS to customer
+        try {
+            await smsService.sendAppointmentConfirmation(customer.phoneNumber, appointmentDetails);
+        } catch (smsError) {
+            console.error('SMS gönderimi başarısız:', smsError);
+            // Don't fail the appointment creation if SMS fails
+        }
+
+        res.status(201).json({ 
+            message: 'Randevunuz başarıyla oluşturuldu. SMS onayı gönderildi.', 
+            appointment: newAppointment 
+        });
+
+    } catch (error) {
+        console.error("Randevu oluşturulurken hata:", error);
+        res.status(500).json({ message: 'Randevu oluşturulurken bir sunucu hatası oluştu.' });
+    }
+};
 const getMyBarberAppointments = async (req, res) => {
 	try {
 		const barberId = req.user.id;
@@ -182,103 +218,257 @@ const getMyBarberAppointments = async (req, res) => {
 	}
 }
 const cancelAppointment = async (req, res) => {
-	try {
-		const user = req.user;
-		const appointmentId = req.params.id;
-		const appointment = await Appointment.findById(appointmentId);
-		if (!appointment) {
-			return res.status(404).json({ message: 'İptal edilecek randevu bulunamadı.' });
-		}
-		const isCustomer = user.id == appointment.customer;
-		const isBarber = user.id == appointment.barber;
-		console.log(isCustomer + isBarber);
-		if (!isCustomer && !isBarber && user.role !== 'admin') {
-			// Eğer ne randevunun sahibi ne de ilgili berber değilse (ve admin de değilse)
-			return res.status(403).json({ message: 'Bu işlemi yapmaya yetkiniz yok.' }); // 403 Forbidden
-		}
-		if (appointment.status === "completed" || appointment.status === "cancelled_by_user" || appointment.status === "cancelled_by_barber") {
-			return res.status(400).json({ message: 'Bu randevu zaten tamamlanmış veya iptal edilmiş.' });
-		}
+    try {
+        const user = req.user;
+        const appointmentId = req.params.id;
+        
+        const appointment = await Appointment.findById(appointmentId)
+            .populate('customer', 'name surname phoneNumber')
+            .populate('barber', 'name surname phoneNumber')
+            .populate('service', 'name');
 
-		appointment.status = user.role === 'customer' ? 'cancelled_by_user' : 'cancelled_by_barber';
+        if (!appointment) {
+            return res.status(404).json({ message: 'İptal edilecek randevu bulunamadı.' });
+        }
 
-		await appointment.save();
-		res.status(200).json({ message: 'Randevu başarıyla iptal edildi.', appointment });
+        const isCustomer = user.id == appointment.customer._id;
+        const isBarber = user.id == appointment.barber._id;
 
-	} catch (error) {
-		console.error("Randevu iptal edilirken hata:", error);
-		res.status(500).json({ message: 'Randevu iptal edilirken bir sunucu hatası oluştu.' });
+        if (!isCustomer && !isBarber && user.role !== 'admin') {
+            return res.status(403).json({ message: 'Bu işlemi yapmaya yetkiniz yok.' });
+        }
 
-	}
-}
+        if (appointment.status === "completed" || appointment.status === "cancelled_by_user" || appointment.status === "cancelled_by_barber") {
+            return res.status(400).json({ message: 'Bu randevu zaten tamamlanmış veya iptal edilmiş.' });
+        }
+
+        // Update appointment status
+        appointment.status = user.role === 'customer' ? 'cancelled_by_user' : 'cancelled_by_barber';
+        await appointment.save();
+
+        // Prepare SMS details
+        const appointmentDate = appointment.startTime.toLocaleDateString('tr-TR');
+        const appointmentTime = appointment.startTime.toLocaleTimeString('tr-TR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+
+        const appointmentDetails = {
+            customerName: `${appointment.customer.name} ${appointment.customer.surname}`,
+            barberName: `${appointment.barber.name} ${appointment.barber.surname}`,
+            date: appointmentDate,
+            time: appointmentTime
+        };
+
+        // Send cancellation SMS to both customer and barber
+        try {
+            if (isCustomer) {
+                // Customer cancelled - notify barber
+                await smsService.sendAppointmentCancellation(appointment.barber.phoneNumber, appointmentDetails);
+				await smsService.sendAppointmentCancellation(appointment.customer.phoneNumber, appointmentDetails);
+
+            } else {
+                // Barber cancelled - notify customer
+                await smsService.sendAppointmentCancellation(appointment.customer.phoneNumber, appointmentDetails);
+            }
+        } catch (smsError) {
+            console.error('İptal SMS gönderimi başarısız:', smsError);
+        }
+
+        res.status(200).json({ 
+            message: 'Randevu başarıyla iptal edildi. İlgili taraf SMS ile bilgilendirildi.', 
+            appointment 
+        });
+
+    } catch (error) {
+        console.error("Randevu iptal edilirken hata:", error);
+        res.status(500).json({ message: 'Randevu iptal edilirken bir sunucu hatası oluştu.' });
+    }
+};
 const createAppointmentByBarber = async (req, res) => {
-	try {
-		const barber = req.user;
-		barber.populate('barberProfile.servicesOffered.service', 'name');
+    try {
+        const barber = req.user;
+        const { 
+            customerId, 
+            guestName, 
+            guestSurname, 
+            guestPhone, 
+            serviceId, 
+            startTime 
+        } = req.body;
 
-		const { customerId,         // Kayıtlı müşteri varsa ID'si gelecek
-			guestName,          // Misafir ise adı
-			guestSurname,       // Misafir ise soyadı
-			guestPhone,         // Misafir ise telefonu
-			serviceId,
-			startTime } = req.body;
+        if (!serviceId || !startTime) {
+            return res.status(400).json({ message: 'Hizmet ve başlangıç saati zorunludur.' });
+        }
 
-		if (!serviceId || !startTime) {
-			return res.status(400).json({ message: 'Müşteri, hizmet ve başlangıç saati zorunludur.' });
-		}
-		const service = barber.barberProfile.servicesOffered.find(
-			s => s.service._id.toString() === serviceId
-		)
-		const hasCustomerInfo = customerId || (guestName && guestSurname && guestPhone);
-		if (!hasCustomerInfo) {
-			return res.status(400).json({ message: 'Kayıtlı bir müşteri seçilmeli veya misafir bilgileri eksiksiz girilmelidir.' });
-		}
-		if (barber.role !== 'barber' && barber.role !== 'admin') {
-			return res.status(403).json({ message: 'Bu işlemi yapmaya sadece berberler yetkilidir.' });
+        if (barber.role !== 'barber' && barber.role !== 'admin') {
+            return res.status(403).json({ message: 'Bu işlemi yapmaya sadece berberler yetkilidir.' });
+        }
 
-		}
-		//const service = await barber.barberProfile.servicesOffered.findById(serviceId)
-		if (!service) {
-			return res.status(404).json({ message: 'Hizmet bulunamadı.' })
-		}
-		const appointmentStartTime = new Date(startTime);
-		const appointmentEndTime = new Date(appointmentStartTime.getTime() + service.duration * 60 * 1000);
+        // Populate barber profile
+        await barber.populate('barberProfile.servicesOffered.service');
 
-		// Timeoff çakışması
-		const hasTimeOffOverlap = (barber.barberProfile?.timeOffs || []).some(off => {
-			const offStart = new Date(off.startTime);
-			const offEnd = new Date(off.endTime);
-			return appointmentStartTime < offEnd && appointmentEndTime > offStart;
-		});
-		if (hasTimeOffOverlap) {
-			return res.status(409).json({ message: 'Bu saat aralığı berberin izin saatlerine denk geliyor.' });
-		}
+        const service = barber.barberProfile.servicesOffered.find(
+            s => s.service._id.toString() === serviceId && s.isActive
+        );
 
-		//const appointmentStartTime = new Date(startTime);
-		//const appointmentEndTime = new Date(appointmentStartTime.getTime() + service.duration * 60 * 1000);
-		// Berberin kendi takviminde o saatte başka bir randevu var mı diye kontrol et.
-		const existingAppointment = await Appointment.findOne({
-			barber: barber.id, // Randevu, giriş yapmış berberin kendi takvimine yazılıyor.
-			status: 'scheduled',
-			$or: [
-				{ startTime: { $lt: appointmentData.endTime, $gte: appointmentData.startTime } },
-				{ endTime: { $gt: appointmentData.startTime, $lte: appointmentData.endTime } }
-			]
-		});
-		if (existingAppointment) {
-			return res.status(409).json({ message: 'Belirtilen saat dilimi zaten dolu veya başka bir randevu ile çakışıyor.' });
-		}
+        if (!service) {
+            return res.status(404).json({ message: 'Hizmet bulunamadı veya aktif değil.' });
+        }
 
-		const newAppointment = new Appointment(appointmentData)
-		await newAppointment.save();
-		res.status(201).json({ message: 'Randevu berber tarafından başarıyla oluşturuldu.', appointment: newAppointment });
+        const hasCustomerInfo = customerId || (guestName && guestSurname && guestPhone);
+        if (!hasCustomerInfo) {
+            return res.status(400).json({ 
+                message: 'Kayıtlı bir müşteri seçilmeli veya misafir bilgileri eksiksiz girilmelidir.' 
+            });
+        }
 
-	} catch (error) {
-		console.error("Berber tarafından randevu oluşturulurken hata:", error);
-		res.status(500).json({ message: 'Randevu oluşturulurken bir sunucu hatası oluştu.' });
+        const appointmentStartTime = new Date(startTime);
+        const appointmentEndTime = new Date(appointmentStartTime.getTime() + service.duration * 60 * 1000);
 
-	}
-}
+        // Check timeoff overlap
+        const hasTimeOffOverlap = (barber.barberProfile?.timeOffs || []).some(off => {
+            const offStart = new Date(off.startTime);
+            const offEnd = new Date(off.endTime);
+            return appointmentStartTime < offEnd && appointmentEndTime > offStart;
+        });
+
+        if (hasTimeOffOverlap) {
+            return res.status(409).json({ message: 'Bu saat aralığı berberin izin saatlerine denk geliyor.' });
+        }
+
+        // Check for existing appointments
+        const existingAppointment = await Appointment.findOne({
+            barber: barber.id,
+            status: { $in: ['scheduled'] },
+            $or: [
+                { startTime: { $lt: appointmentEndTime, $gte: appointmentStartTime } },
+                { endTime: { $gt: appointmentStartTime, $lte: appointmentEndTime } }
+            ]
+        });
+
+        if (existingAppointment) {
+            return res.status(409).json({ 
+                message: 'Belirtilen saat dilimi zaten dolu veya başka bir randevu ile çakışıyor.' 
+            });
+        }
+
+        // Prepare appointment data
+        const appointmentData = {
+            barber: barber.id,
+            service: serviceId,
+            startTime: appointmentStartTime,
+            endTime: appointmentEndTime,
+        };
+
+        // Add customer or guest information
+        if (customerId) {
+            const customer = await User.findById(customerId);
+            if (!customer) {
+                return res.status(404).json({ message: 'Müşteri bulunamadı.' });
+            }
+            appointmentData.customer = customerId;
+        } else {
+            appointmentData.guestName = guestName;
+            appointmentData.guestSurname = guestSurname;
+            appointmentData.guestPhoneNumber = guestPhone;
+        }
+
+        const newAppointment = new Appointment(appointmentData);
+        await newAppointment.save();
+
+        // Send SMS confirmation
+        const appointmentDate = appointmentStartTime.toLocaleDateString('tr-TR');
+        const appointmentTime = appointmentStartTime.toLocaleTimeString('tr-TR', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+
+        const appointmentDetails = {
+            customerName: customerId ? 
+                `${(await User.findById(customerId)).name} ${(await User.findById(customerId)).surname}` :
+                `${guestName} ${guestSurname}`,
+            barberName: `${barber.name} ${barber.surname}`,
+            serviceName: service.service.name,
+            date: appointmentDate,
+            time: appointmentTime
+        };
+
+        const phoneNumber = customerId ? 
+            (await User.findById(customerId)).phoneNumber : 
+            guestPhone;
+
+        try {
+            await smsService.sendAppointmentConfirmation(phoneNumber, appointmentDetails);
+        } catch (smsError) {
+            console.error('SMS gönderimi başarısız:', smsError);
+        }
+
+        res.status(201).json({ 
+            message: 'Randevu berber tarafından başarıyla oluşturuldu. SMS onayı gönderildi.', 
+            appointment: newAppointment 
+        });
+
+    } catch (error) {
+        console.error("Berber tarafından randevu oluşturulurken hata:", error);
+        res.status(500).json({ message: 'Randevu oluşturulurken bir sunucu hatası oluştu.' });
+    }
+};
+const sendAppointmentReminders = async () => {
+    try {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        
+        const dayAfterTomorrow = new Date(tomorrow);
+        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
+
+        // Find appointments for tomorrow
+        const tomorrowAppointments = await Appointment.find({
+            status: 'scheduled',
+            startTime: {
+                $gte: tomorrow,
+                $lt: dayAfterTomorrow
+            }
+        })
+        .populate('customer', 'name surname phoneNumber')
+        .populate('barber', 'name surname')
+        .populate('service', 'name');
+
+        for (const appointment of tomorrowAppointments) {
+            const appointmentTime = appointment.startTime.toLocaleTimeString('tr-TR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+
+            const appointmentDetails = {
+                customerName: appointment.customer ? 
+                    `${appointment.customer.name} ${appointment.customer.surname}` :
+                    `${appointment.guestName} ${appointment.guestSurname}`,
+                barberName: `${appointment.barber.name} ${appointment.barber.surname}`,
+                serviceName: appointment.service.name,
+                date: appointment.startTime.toLocaleDateString('tr-TR'),
+                time: appointmentTime
+            };
+
+            const phoneNumber = appointment.customer ? 
+                appointment.customer.phoneNumber : 
+                appointment.guestPhoneNumber;
+
+            try {
+                await smsService.sendAppointmentReminder(phoneNumber, appointmentDetails);
+                console.log(`Reminder sent for appointment ${appointment._id}`);
+            } catch (smsError) {
+                console.error(`Failed to send reminder for appointment ${appointment._id}:`, smsError);
+            }
+        }
+
+        console.log(`Processed ${tomorrowAppointments.length} appointment reminders`);
+        
+    } catch (error) {
+        console.error('Error sending appointment reminders:', error);
+    }
+};
 const updateAppointmentStatus = async (req, res) => {
 	try {
 		const { id } = req.params;
@@ -318,5 +508,6 @@ module.exports = {
 	getMyBarberAppointments,
 	cancelAppointment,
 	createAppointmentByBarber,
-	updateAppointmentStatus 
+	updateAppointmentStatus,
+	sendAppointmentReminders
 }

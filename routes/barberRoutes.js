@@ -7,7 +7,7 @@ const { getBarberProfile, updateBarberProfile, getBarbers, updateMyServices, get
 router.get('/getBarbers', getBarbers);
 router.get('/:id', protect, getBarberProfile);
 //router.get('/')
-router.put('/:id', updateBarberProfile);
+router.put('/:id', protect, updateBarberProfile);
 router.put('/me/services', protect, updateMyServices)
 router.get('/me/services', protect, getMyServices)
 router.patch('/me/services/:serviceId/toggle', protect, toggleServiceStatus)

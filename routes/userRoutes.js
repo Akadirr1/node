@@ -1,12 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { createBarber, createUser, loginUser, getMe, logOut, getAppointments, searchCustomerByPhone } = require('../controllers/userController');
+const { createBarber, getMe, logOut, getAppointments, searchCustomerByPhone, loginUser } = require('../controllers/userController');
 const { protect, adminOnly } = require('../middleWares/authMiddleware');
-router.post('/register/barber', protect, adminOnly, createBarber);//buraya protect ekle herkes berber açamasın aq
-router.post('/register/user', createUser);
-router.get('/me', protect, getMe);
-router.get('/myAppointments', protect, getAppointments)
+
+// Keep traditional login for backward compatibility (can be removed later)
 router.post('/login/user', loginUser);
+
+router.post('/register/barber', protect, adminOnly, createBarber);
+router.get('/me', protect, getMe);
+router.get('/myAppointments', protect, getAppointments);
 router.post('/logout', logOut);
-router.get('/search', searchCustomerByPhone);
+router.get('/search', protect, searchCustomerByPhone);
+
 module.exports = router;

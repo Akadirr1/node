@@ -15,7 +15,7 @@ const UserSchema = new Schema({
 	},
 	phoneNumber: {
 		type: String,
-		required: [true, 'Soyisim alani zorunludur!'],
+		required: [true, 'Telefon numarası alanı zorunludur!'],
 		unique: true
 
 	},

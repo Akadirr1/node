@@ -1,0 +1,678 @@
+<style>
+	/* Modern Availability Styles */
+	.availability-section {
+		padding: 0 40px;
+		margin-top: 50px;
+	}
+
+	.availability-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 30px;
+		flex-wrap: wrap;
+		gap: 20px;
+	}
+
+	.availability-form-container {
+		background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+		border-radius: 16px;
+		padding: 30px;
+		border: 1px solid #4a4a4a;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+	}
+
+	.days-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+		gap: 20px;
+		margin-bottom: 30px;
+	}
+
+	.day-card {
+		background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+		border-radius: 12px;
+		padding: 20px;
+		border: 2px solid #555;
+		transition: all 0.3s ease;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.day-card::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 3px;
+		background: linear-gradient(90deg, #666, #555);
+		transition: all 0.3s ease;
+	}
+
+	.day-card.active {
+		border-color: #8bc34a;
+		background: linear-gradient(135deg, #3d4a2a 0%, #2d3a1a 100%);
+	}
+
+	.day-card.active::before {
+		background: linear-gradient(90deg, #8bc34a, #7cb342);
+	}
+
+	.day-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 15px;
+	}
+
+	.day-info h3 {
+		color: #fff;
+		margin: 0;
+		font-size: 18px;
+		font-weight: 600;
+	}
+
+	.day-status {
+		font-size: 12px;
+		padding: 4px 8px;
+		border-radius: 12px;
+		background: #666;
+		color: #fff;
+		margin-top: 4px;
+		display: inline-block;
+	}
+
+	.day-card.active .day-status {
+		background: #8bc34a;
+		color: #000;
+	}
+
+	/* Modern Switch */
+	.switch {
+		position: relative;
+		display: inline-block;
+		width: 50px;
+		height: 26px;
+	}
+
+	.switch input {
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+	.slider {
+		position: absolute;
+		cursor: pointer;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: linear-gradient(135deg, #666, #555);
+		transition: all 0.3s ease;
+		border-radius: 26px;
+		box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+	}
+
+	.slider:before {
+		position: absolute;
+		content: "";
+		height: 20px;
+		width: 20px;
+		left: 3px;
+		top: 3px;
+		background: linear-gradient(135deg, #fff, #f0f0f0);
+		transition: all 0.3s ease;
+		border-radius: 50%;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+	}
+
+	.switch input:checked+.slider {
+		background: linear-gradient(135deg, #8bc34a, #7cb342);
+		box-shadow: 0 0 20px rgba(139, 195, 74, 0.4);
+	}
+
+	.switch input:checked+.slider:before {
+		transform: translateX(24px);
+	}
+
+	.time-selector {
+		transition: all 0.4s ease;
+		max-height: 0;
+		overflow: hidden;
+		opacity: 0;
+	}
+
+	.day-card.active .time-selector {
+		max-height: 300px;
+		opacity: 1;
+	}
+
+	.time-selector.hidden {
+		display: none;
+	}
+
+	.day-card.active .time-selector.hidden {
+		display: block;
+	}
+
+	.time-group {
+		margin-bottom: 15px;
+	}
+
+	.time-group label {
+		display: block;
+		color: #8bc34a;
+		font-weight: 600;
+		margin-bottom: 8px;
+		font-size: 14px;
+	}
+
+	.time-picker {
+		width: 100%;
+		background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+		border: 2px solid #555;
+		color: #fff;
+		padding: 12px 15px;
+		border-radius: 10px;
+		font-size: 16px;
+		transition: all 0.3s ease;
+		cursor: pointer;
+	}
+
+	.time-picker:focus {
+		outline: none;
+		border-color: #8bc34a;
+		box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.2);
+	}
+
+	.form-actions-modern {
+		text-align: center;
+		margin-top: 30px;
+	}
+
+	.save-btn-modern {
+		background: linear-gradient(135deg, #8bc34a, #7cb342);
+		color: #000;
+		border: none;
+		padding: 15px 40px;
+		border-radius: 12px;
+		font-size: 16px;
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		box-shadow: 0 4px 15px rgba(139, 195, 74, 0.3);
+	}
+
+	.save-btn-modern:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 25px rgba(139, 195, 74, 0.4);
+	}
+
+	.btn-icon {
+		font-size: 18px;
+	}
+
+	/* Flatpickr Dark Theme Customization */
+	.flatpickr-calendar {
+		background: #2d2d2d !important;
+		border: 2px solid #8bc34a !important;
+		border-radius: 12px !important;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+	}
+
+	.flatpickr-time input {
+		background: #1a1a1a !important;
+		color: #8bc34a !important;
+		border: 1px solid #555 !important;
+		font-weight: 600 !important;
+	}
+
+	.flatpickr-time input:focus {
+		border-color: #8bc34a !important;
+	}
+
+	.flatpickr-am-pm {
+		background: #8bc34a !important;
+		color: #000 !important;
+		font-weight: 600 !important;
+	}
+
+	/* Responsive design */
+	@media (max-width: 768px) {
+		.availability-section {
+			padding: 0 20px;
+		}
+
+		.availability-header {
+			flex-direction: column;
+			text-align: center;
+			gap: 15px;
+			padding: 0 20px;
+		}
+
+		.days-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>
+
+<!-- Availability Section -->
+<div class="availability-section">
+	<div class="availability-header">
+		<h2 class="section-title">Çalışma Saatlerini Düzenle</h2>
+	</div>
+
+	<div class="availability-form-container">
+		<form id="availabilityForm">
+			<div class="days-grid">
+				<div class="day-card" data-day="monday">
+					<div class="day-header">
+						<div class="day-info">
+							<h3>Pazartesi</h3>
+							<span class="day-status">Kapalı</span>
+						</div>
+						<label class="switch">
+							<input type="checkbox" id="monday-enabled" onchange="toggleDayCard('monday')">
+							<span class="slider"></span>
+						</label>
+					</div>
+					<div class="time-selector hidden">
+						<div class="time-group">
+							<label>Başlangıç Saati</label>
+							<input type="text" id="monday-start" class="time-picker"
+								placeholder="Saat seçin">
+						</div>
+						<div class="time-group">
+							<label>Bitiş Saati</label>
+							<input type="text" id="monday-end" class="time-picker" placeholder="Saat seçin">
+						</div>
+					</div>
+				</div>
+
+				<div class="day-card" data-day="tuesday">
+					<div class="day-header">
+						<div class="day-info">
+							<h3>Salı</h3>
+							<span class="day-status">Kapalı</span>
+						</div>
+						<label class="switch">
+							<input type="checkbox" id="tuesday-enabled" onchange="toggleDayCard('tuesday')">
+							<span class="slider"></span>
+						</label>
+					</div>
+					<div class="time-selector hidden">
+						<div class="time-group">
+							<label>Başlangıç Saati</label>
+							<input type="text" id="tuesday-start" class="time-picker"
+								placeholder="Saat seçin">
+						</div>
+						<div class="time-group">
+							<label>Bitiş Saati</label>
+							<input type="text" id="tuesday-end" class="time-picker"
+								placeholder="Saat seçin">
+						</div>
+					</div>
+				</div>
+
+				<div class="day-card" data-day="wednesday">
+					<div class="day-header">
+						<div class="day-info">
+							<h3>Çarşamba</h3>
+							<span class="day-status">Kapalı</span>
+						</div>
+						<label class="switch">
+							<input type="checkbox" id="wednesday-enabled"
+								onchange="toggleDayCard('wednesday')">
+							<span class="slider"></span>
+						</label>
+					</div>
+					<div class="time-selector hidden">
+						<div class="time-group">
+							<label>Başlangıç Saati</label>
+							<input type="text" id="wednesday-start" class="time-picker"
+								placeholder="Saat seçin">
+						</div>
+						<div class="time-group">
+							<label>Bitiş Saati</label>
+							<input type="text" id="wednesday-end" class="time-picker"
+								placeholder="Saat seçin">
+						</div>
+					</div>
+				</div>
+
+				<div class="day-card" data-day="thursday">
+					<div class="day-header">
+						<div class="day-info">
+							<h3>Perşembe</h3>
+							<span class="day-status">Kapalı</span>
+						</div>
+						<label class="switch">
+							<input type="checkbox" id="thursday-enabled"
+								onchange="toggleDayCard('thursday')">
+							<span class="slider"></span>
+						</label>
+					</div>
+					<div class="time-selector hidden">
+						<div class="time-group">
+							<label>Başlangıç Saati</label>
+							<input type="text" id="thursday-start" class="time-picker"
+								placeholder="Saat seçin">
+						</div>
+						<div class="time-group">
+							<label>Bitiş Saati</label>
+							<input type="text" id="thursday-end" class="time-picker"
+								placeholder="Saat seçin">
+						</div>
+					</div>
+				</div>
+
+				<div class="day-card" data-day="friday">
+					<div class="day-header">
+						<div class="day-info">
+							<h3>Cuma</h3>
+							<span class="day-status">Kapalı</span>
+						</div>
+						<label class="switch">
+							<input type="checkbox" id="friday-enabled" onchange="toggleDayCard('friday')">
+							<span class="slider"></span>
+						</label>
+					</div>
+					<div class="time-selector hidden">
+						<div class="time-group">
+							<label>Başlangıç Saati</label>
+							<input type="text" id="friday-start" class="time-picker"
+								placeholder="Saat seçin">
+						</div>
+						<div class="time-group">
+							<label>Bitiş Saati</label>
+							<input type="text" id="friday-end" class="time-picker" placeholder="Saat seçin">
+						</div>
+					</div>
+				</div>
+
+				<div class="day-card" data-day="saturday">
+					<div class="day-header">
+						<div class="day-info">
+							<h3>Cumartesi</h3>
+							<span class="day-status">Kapalı</span>
+						</div>
+						<label class="switch">
+							<input type="checkbox" id="saturday-enabled"
+								onchange="toggleDayCard('saturday')">
+							<span class="slider"></span>
+						</label>
+					</div>
+					<div class="time-selector hidden">
+						<div class="time-group">
+							<label>Başlangıç Saati</label>
+							<input type="text" id="saturday-start" class="time-picker"
+								placeholder="Saat seçin">
+						</div>
+						<div class="time-group">
+							<label>Bitiş Saati</label>
+							<input type="text" id="saturday-end" class="time-picker"
+								placeholder="Saat seçin">
+						</div>
+					</div>
+				</div>
+
+				<div class="day-card" data-day="sunday">
+					<div class="day-header">
+						<div class="day-info">
+							<h3>Pazar</h3>
+							<span class="day-status">Kapalı</span>
+						</div>
+						<label class="switch">
+							<input type="checkbox" id="sunday-enabled" onchange="toggleDayCard('sunday')">
+							<span class="slider"></span>
+						</label>
+					</div>
+					<div class="time-selector hidden">
+						<div class="time-group">
+							<label>Başlangıç Saati</label>
+							<input type="text" id="sunday-start" class="time-picker"
+								placeholder="Saat seçin">
+						</div>
+						<div class="time-group">
+							<label>Bitiş Saati</label>
+							<input type="text" id="sunday-end" class="time-picker" placeholder="Saat seçin">
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="form-actions-modern">
+				<button type="submit" class="save-btn-modern">
+					<span class="btn-icon">💾</span>
+					Çalışma Saatlerini Kaydet
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+<script>
+	// Availability Section JavaScript
+
+	// Initialize availability section
+	function initializeAvailabilitySection() {
+		fetchCurrentAvailabilityForEdit();
+		setupAvailabilityEventListeners();
+	}
+
+	function setupAvailabilityEventListeners() {
+		// Add form event listener
+		const availabilityForm = document.getElementById('availabilityForm');
+		if (availabilityForm) {
+			availabilityForm.addEventListener('submit', handleAvailabilitySubmit);
+		}
+	}
+
+	async function fetchCurrentAvailabilityForEdit() {
+		try {
+			const response = await fetch('/api/barbers/me/availability', {
+				method: 'GET',
+				credentials: 'include'
+			});
+
+			if (response.ok) {
+				const data = await response.json();
+				console.log('Availability data for edit:', data); // Debug için
+				populateAvailabilityForm(data);
+				// Re-initialize day cards after populating form to ensure proper states
+				setTimeout(() => {
+					initializeDayCards();
+					initializeTimePickers();
+				}, 100);
+			}
+		} catch (error) {
+			console.error('Error fetching availability for edit:', error);
+		}
+	}
+
+	function populateAvailabilityForm(availability) {
+		const dayMapping = {
+			1: 'monday',
+			2: 'tuesday',
+			3: 'wednesday',
+			4: 'thursday',
+			5: 'friday',
+			6: 'saturday',
+			0: 'sunday'
+		};
+
+		// Create availability lookup object
+		const availabilityByDay = {};
+		if (availability && Array.isArray(availability)) {
+			availability.forEach(item => {
+				availabilityByDay[item.dayOfWeek] = item;
+			});
+		}
+
+		// Fill form for each day
+		Object.keys(dayMapping).forEach(dayNum => {
+			const dayName = dayMapping[dayNum];
+			const checkbox = document.getElementById(`${dayName}-enabled`);
+			const startInput = document.getElementById(`${dayName}-start`);
+			const endInput = document.getElementById(`${dayName}-end`);
+			const dayCard = document.querySelector(`[data-day="${dayName}"]`);
+			const timeSelector = dayCard?.querySelector('.time-selector');
+			const dayStatusSpan = dayCard?.querySelector('.day-status');
+
+			const dayData = availabilityByDay[parseInt(dayNum)];
+
+			if (dayData && dayData.startTime && dayData.endTime) {
+				checkbox.checked = true;
+				startInput.value = dayData.startTime;
+				endInput.value = dayData.endTime;
+
+				// Ensure the day card is active and time selector is visible
+				if (dayCard) {
+					dayCard.classList.add('active');
+					if (timeSelector) timeSelector.classList.remove('hidden');
+					if (dayStatusSpan) dayStatusSpan.textContent = 'Açık';
+				}
+			} else {
+				checkbox.checked = false;
+				startInput.value = '';
+				endInput.value = '';
+
+				// Ensure the day card is inactive and time selector is hidden
+				if (dayCard) {
+					dayCard.classList.remove('active');
+					if (timeSelector) timeSelector.classList.add('hidden');
+					if (dayStatusSpan) dayStatusSpan.textContent = 'Kapalı';
+				}
+			}
+		});
+	}
+
+	async function handleAvailabilitySubmit(event) {
+		event.preventDefault();
+
+		const dayMapping = {
+			'monday': 1,
+			'tuesday': 2,
+			'wednesday': 3,
+			'thursday': 4,
+			'friday': 5,
+			'saturday': 6,
+			'sunday': 0
+		};
+
+		const availability = [];
+
+		Object.keys(dayMapping).forEach(dayName => {
+			const checkbox = document.getElementById(`${dayName}-enabled`);
+			const startInput = document.getElementById(`${dayName}-start`);
+			const endInput = document.getElementById(`${dayName}-end`);
+
+			if (checkbox.checked && startInput.value && endInput.value) {
+				availability.push({
+					dayOfWeek: dayMapping[dayName],
+					startTime: startInput.value,
+					endTime: endInput.value
+				});
+			}
+		});
+
+		try {
+			const response = await fetch('/api/barbers/me/availability', {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify({
+					availability: availability
+				})
+			});
+
+			if (response.ok) {
+				await fetchCurrentAvailabilityForEdit(); // Refresh form data
+				alert('Çalışma saatleri başarıyla güncellendi!');
+			} else {
+				const error = await response.json();
+				throw new Error(error.message || 'Çalışma saatleri güncellenirken hata oluştu');
+			}
+		} catch (error) {
+			console.error('Error updating availability:', error);
+			alert('Çalışma saatleri güncellenirken hata oluştu: ' + error.message);
+		}
+	}
+
+	// Initialize Flatpickr for modern time pickers
+	function initializeTimePickers() {
+		const timePickerInputs = document.querySelectorAll('.time-picker');
+
+		timePickerInputs.forEach(input => {
+			flatpickr(input, {
+				enableTime: true,
+				noCalendar: true,
+				dateFormat: "H:i",
+				time_24hr: true,
+				defaultHour: input.dataset.default ? parseInt(input.dataset.default.split(':')[0]) : 9,
+				defaultMinute: input.dataset.default ? parseInt(input.dataset.default.split(':')[1]) : 0,
+				minuteIncrement: 15,
+				locale: "tr",
+				theme: "dark"
+			});
+		});
+	}
+
+	// Initialize toggle switches and time selectors
+	function initializeDayCards() {
+		const dayCards = document.querySelectorAll('.day-card');
+
+		dayCards.forEach(card => {
+			const toggle = card.querySelector('.switch input[type="checkbox"]');
+			const timeSelector = card.querySelector('.time-selector');
+			const dayStatusSpan = card.querySelector('.day-status');
+
+			// Set initial state based on checkbox
+			updateDayCardState(card, toggle, timeSelector, dayStatusSpan);
+
+			// Handle toggle changes
+			toggle.addEventListener('change', function () {
+				updateDayCardState(card, toggle, timeSelector, dayStatusSpan);
+			});
+		});
+	}
+
+	function updateDayCardState(card, toggle, timeSelector, dayStatusSpan) {
+		if (toggle.checked) {
+			card.classList.add('active');
+			timeSelector.classList.remove('hidden');
+			dayStatusSpan.textContent = 'Açık';
+		} else {
+			card.classList.remove('active');
+			timeSelector.classList.add('hidden');
+			dayStatusSpan.textContent = 'Kapalı';
+		}
+	}
+
+	// Legacy function for HTML onclick handlers
+	function toggleDayCard(dayName) {
+		const dayCard = document.querySelector(`[data-day="${dayName}"]`);
+		const toggle = document.getElementById(`${dayName}-enabled`);
+		const timeSelector = dayCard?.querySelector('.time-selector');
+		const dayStatusSpan = dayCard?.querySelector('.day-status');
+
+		if (dayCard && toggle && timeSelector && dayStatusSpan) {
+			updateDayCardState(dayCard, toggle, timeSelector, dayStatusSpan);
+		}
+	}
+
+	// Initialize availability section when DOM is ready
+	document.addEventListener('DOMContentLoaded', function() {
+		// Only initialize if this section is present
+		if (document.querySelector('.availability-section')) {
+			initializeAvailabilitySection();
+		}
+	});
+</script>

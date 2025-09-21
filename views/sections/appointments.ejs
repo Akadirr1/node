@@ -1,0 +1,1384 @@
+<style>
+	.appointments-section {
+		padding: 0 20px;
+		width: 100%;
+		max-width: none;
+	}
+
+	/* Two Column Layout */
+	.appointments-container {
+		display: flex;
+		gap: 20px;
+		align-items: flex-start;
+	}
+
+	.calendar-sidebar {
+		flex: 0 0 300px;
+		min-width: 280px;
+	}
+
+	.appointments-content {
+		flex: 1;
+		min-width: 0;
+	}
+
+	/* Calendar Filter Styles */
+	.calendar-filter-section {
+		background: #2d2d2d;
+		border: 1px solid #4a4a4a;
+		border-radius: 8px;
+		padding: 15px;
+	}
+
+	.calendar-filter-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 12px;
+	}
+
+	.filter-title {
+		color: #ffffff;
+		font-size: 16px;
+		font-weight: 600;
+		margin: 0;
+	}
+
+	.date-nav {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.nav-btn {
+		background: #3a3a3a;
+		border: none;
+		color: #ffffff;
+		padding: 6px 8px;
+		border-radius: 4px;
+		cursor: pointer;
+		transition: background-color 0.3s ease;
+		font-size: 12px;
+	}
+
+	.nav-btn:hover {
+		background: #4a4a4a;
+	}
+
+	.calendar-month {
+		color: #8bc34a;
+		font-weight: 600;
+		font-size: 14px;
+		min-width: 100px;
+		text-align: center;
+	}
+
+	.mini-calendar {
+		margin: 10px 0;
+	}
+
+	.calendar-header-mini {
+		display: grid;
+		grid-template-columns: repeat(7, 1fr);
+		gap: 1px;
+		margin-bottom: 3px;
+	}
+
+	.day-header-mini {
+		background: #3a3a3a;
+		color: #ffffff;
+		padding: 6px 2px;
+		text-align: center;
+		font-size: 10px;
+		font-weight: 600;
+		border-radius: 3px;
+	}
+
+	.calendar-days-mini {
+		display: grid;
+		grid-template-columns: repeat(7, 1fr);
+		gap: 1px;
+	}
+
+	.calendar-day-mini {
+		background: #3a3a3a;
+		color: #ffffff;
+		padding: 8px 2px;
+		text-align: center;
+		font-size: 12px;
+		border-radius: 3px;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		position: relative;
+		min-height: 30px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.calendar-day-mini:hover {
+		background: #4a4a4a;
+	}
+
+	.calendar-day-mini.other-month {
+		color: #666;
+		background: #252525;
+	}
+
+	.calendar-day-mini.today {
+		background: #8bc34a;
+		color: #000;
+		font-weight: 600;
+	}
+
+	.calendar-day-mini.selected {
+		background: #ff6b35;
+		color: #ffffff;
+		font-weight: 600;
+	}
+
+	.calendar-day-mini.has-appointments::after {
+		content: '';
+		position: absolute;
+		bottom: 2px;
+		left: 50%;
+		transform: translateX(-50%);
+		width: 3px;
+		height: 3px;
+		background: #8bc34a;
+		border-radius: 50%;
+	}
+
+	.filter-actions {
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+		margin-top: 10px;
+	}
+
+	.selected-date-info {
+		color: #8bc34a;
+		font-size: 11px;
+		font-weight: 500;
+		text-align: right;
+	}
+
+	/* Appointments Summary Styles */
+	.appointments-summary {
+		padding: 0;
+	}
+
+	.summary-card {
+		background: #2d2d2d;
+		border: 1px solid #4a4a4a;
+		border-radius: 8px;
+		padding: 20px;
+	}
+
+	.summary-title {
+		color: #ffffff;
+		font-size: 20px;
+		font-weight: 600;
+		margin-bottom: 20px;
+		text-align: center;
+	}
+
+	.summary-stats {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 20px;
+		margin-bottom: 25px;
+	}
+
+	.stat-item {
+		text-align: center;
+		padding: 15px;
+		background: #3a3a3a;
+		border-radius: 8px;
+	}
+
+	.stat-number {
+		display: block;
+		color: #8bc34a;
+		font-size: 28px;
+		font-weight: 700;
+		margin-bottom: 5px;
+	}
+
+	.stat-label {
+		color: #b0b0b0;
+		font-size: 14px;
+		font-weight: 500;
+	}
+
+	.summary-info {
+		border-top: 1px solid #4a4a4a;
+		padding-top: 20px;
+	}
+
+	.summary-info p {
+		color: #b0b0b0;
+		margin-bottom: 10px;
+		font-size: 14px;
+	}
+
+	.summary-info i {
+		color: #8bc34a;
+		margin-right: 8px;
+	}
+
+	.empty-state {
+		text-align: center;
+		padding: 40px 20px;
+		color: #b0b0b0;
+	}
+
+	.empty-state i {
+		color: #666;
+		margin-bottom: 20px;
+	}
+
+	.empty-state h3 {
+		color: #ffffff;
+		margin-bottom: 15px;
+	}
+
+	/* Modal Styles */
+	.modal {
+		position: fixed;
+		z-index: 1000;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.8);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.modal-content {
+		background: #2d2d2d;
+		border-radius: 12px;
+		width: 90%;
+		max-width: 500px;
+		border: 1px solid #4a4a4a;
+	}
+
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20px 25px;
+		border-bottom: 1px solid #4a4a4a;
+	}
+
+	.modal-body {
+		padding: 25px;
+	}
+
+	/* Day Appointments Modal */
+	.day-appointments-modal {
+		max-width: 500px;
+		max-height: 80vh;
+	}
+
+	.day-appointments-list {
+		max-height: 400px;
+		overflow-y: auto;
+	}
+
+	.day-appointment-item {
+		background: #3a3a3a;
+		border-radius: 6px;
+		padding: 12px;
+		margin-bottom: 8px;
+		border: 1px solid #4a4a4a;
+	}
+
+	.day-appointment-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 6px;
+	}
+
+	.day-customer-name {
+		color: #8bc34a;
+		font-weight: 600;
+		font-size: 14px;
+	}
+
+	.day-appointment-time {
+		color: #ffffff;
+		font-weight: 500;
+		background: #2d2d2d;
+		padding: 3px 6px;
+		border-radius: 4px;
+		font-size: 12px;
+	}
+
+	.day-appointment-details {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+		margin-top: 6px;
+	}
+
+	.day-detail-item {
+		font-size: 11px;
+	}
+
+	.day-detail-label {
+		color: #b0b0b0;
+		margin-bottom: 1px;
+		font-size: 10px;
+	}
+
+	.day-detail-value {
+		color: #ffffff;
+		font-weight: 500;
+		font-size: 11px;
+	}
+
+	.day-service-name {
+		color: #8bc34a;
+	}
+
+	.day-cancel-btn {
+		background: #ff4444;
+		color: white;
+		border: none;
+		padding: 5px 10px;
+		border-radius: 4px;
+		font-size: 11px;
+		cursor: pointer;
+		margin-top: 8px;
+		width: 100%;
+	}
+
+	.day-cancel-btn:hover {
+		background: #ff3333;
+	}
+
+	/* Past Appointment Styles */
+	.past-appointment {
+		opacity: 0.7;
+		border-left: 4px solid #666;
+	}
+
+	.past-appointment .day-customer-name {
+		color: #999;
+	}
+
+	.past-appointment .day-appointment-time {
+		background: #555;
+		color: #ccc;
+	}
+
+	.past-appointment .day-service-name {
+		color: #999;
+	}
+
+	.past-appointment-badge {
+		background: #666;
+		color: #ccc;
+		padding: 5px 10px;
+		border-radius: 4px;
+		font-size: 11px;
+		text-align: center;
+		margin-top: 8px;
+		font-weight: 500;
+	}
+
+	.no-day-appointments {
+		text-align: center;
+		padding: 40px 20px;
+		color: #b0b0b0;
+	}
+
+	.no-day-appointments i {
+		font-size: 48px;
+		color: #666;
+		margin-bottom: 15px;
+	}
+
+	/* Appointments Header */
+	.appointments-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 30px;
+	}
+
+	.add-appointment-btn {
+		background: #2196f3;
+		color: white;
+		border: none;
+		padding: 12px 24px;
+		border-radius: 8px;
+		font-size: 16px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background-color 0.3s ease;
+	}
+
+	.add-appointment-btn:hover {
+		background: #1976d2;
+	}
+
+	/* Appointment Modal Specific Styles */
+	.appointment-modal {
+		max-width: 700px;
+	}
+
+	.customer-type-tabs {
+		display: flex;
+		background: #1a1a1a;
+		border-radius: 8px;
+		padding: 4px;
+		margin-bottom: 20px;
+	}
+
+	.tab-btn {
+		flex: 1;
+		background: transparent;
+		color: #ffffff;
+		border: none;
+		padding: 12px 16px;
+		border-radius: 6px;
+		font-size: 14px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: all 0.3s ease;
+	}
+
+	.tab-btn.active {
+		background: #2196f3;
+		color: #ffffff;
+	}
+
+	.tab-btn:hover:not(.active) {
+		background: #333;
+	}
+
+	.customer-section {
+		margin-bottom: 20px;
+	}
+
+	.guest-info-container {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 15px;
+	}
+
+	.guest-info-container .input-group:last-child {
+		grid-column: 1 / -1;
+	}
+
+	.input-group {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.input-group label {
+		color: #ffffff;
+		font-size: 14px;
+		font-weight: 500;
+		margin-bottom: 8px;
+	}
+
+	.input-group input {
+		padding: 12px;
+		border: 2px solid #4a4a4a;
+		border-radius: 8px;
+		background: #1a1a1a;
+		color: #ffffff;
+		font-size: 16px;
+		transition: border-color 0.3s ease;
+	}
+
+	.input-group input:focus {
+		outline: none;
+		border-color: #2196f3;
+		box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+	}
+
+	.form-select {
+		width: 100%;
+		padding: 12px;
+		border: 2px solid #4a4a4a;
+		border-radius: 8px;
+		background: #1a1a1a;
+		color: #ffffff;
+		font-size: 16px;
+		cursor: pointer;
+		transition: border-color 0.3s ease;
+	}
+
+	.form-select:focus {
+		outline: none;
+		border-color: #2196f3;
+		box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+	}
+
+	.form-select option {
+		background: #1a1a1a;
+		color: #ffffff;
+	}
+
+	.datetime-container {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 20px;
+	}
+
+	/* Selected Customer Info Styling */
+	.selected-customer-info {
+		margin-top: 10px;
+		padding: 8px 12px;
+		border-radius: 5px;
+		font-size: 14px;
+		font-weight: 500;
+		border: 1px solid transparent;
+		background-color: rgba(255, 255, 255, 0.05);
+	}
+
+	.selected-customer-info.success {
+		background-color: rgba(40, 167, 69, 0.1);
+		border-color: #28a745;
+		color: #28a745;
+	}
+
+	.selected-customer-info.error {
+		background-color: rgba(220, 53, 69, 0.1);
+		border-color: #dc3545;
+		color: #dc3545;
+	}
+
+	.selected-customer-info.warning {
+		background-color: rgba(255, 193, 7, 0.1);
+		border-color: #ffc107;
+		color: #ffc107;
+	}
+
+	/* Responsive design */
+	@media (max-width: 768px) {
+		/* Mobile layout - stack vertically */
+		.appointments-container {
+			flex-direction: column;
+			gap: 15px;
+		}
+
+		.calendar-sidebar {
+			flex: none;
+			min-width: auto;
+		}
+
+		/* Mobile summary adjustments */
+		.summary-stats {
+			grid-template-columns: 1fr;
+			gap: 10px;
+		}
+
+		.stat-item {
+			padding: 10px;
+		}
+
+		.stat-number {
+			font-size: 24px;
+		}
+
+		.stat-label {
+			font-size: 12px;
+		}
+
+		.summary-info {
+			padding-top: 15px;
+		}
+
+		.summary-info p {
+			font-size: 12px;
+		}
+
+		/* Mobile modal adjustments */
+		.modal-content {
+			width: 95%;
+			margin: 10px;
+		}
+
+		.day-appointments-modal {
+			max-width: 95%;
+			max-height: 90vh;
+		}
+
+		.day-appointment-details {
+			grid-template-columns: 1fr;
+			gap: 6px;
+		}
+
+		.guest-info-container,
+		.datetime-container {
+			grid-template-columns: 1fr;
+			gap: 15px;
+		}
+
+		.appointment-modal {
+			margin: 20px;
+			max-width: none;
+		}
+
+		.appointments-header {
+			flex-direction: column;
+			gap: 15px;
+			align-items: stretch;
+		}
+	}
+</style>
+
+<!-- Appointments Section -->
+<div class="appointments-section">
+	<div class="appointments-header">
+		<h2 class="section-title">Yaklaşan Randevularım</h2>
+		<button class="add-appointment-btn" onclick="showAddAppointmentModal()">Manuel Randevu Ekle</button>
+	</div>
+
+	<!-- Two Column Layout -->
+	<div class="appointments-container">
+		<!-- Left Side - Calendar Filter -->
+		<div class="calendar-sidebar">
+			<div class="calendar-filter-section">
+				<div class="calendar-filter-header">
+					<h3 class="filter-title">Takvim</h3>
+					<div class="date-nav">
+						<button class="nav-btn" onclick="previousMonthFilter()">
+							<i class="fas fa-chevron-left"></i>
+						</button>
+						<span id="filterCalendarTitle" class="calendar-month"></span>
+						<button class="nav-btn" onclick="nextMonthFilter()">
+							<i class="fas fa-chevron-right"></i>
+						</button>
+					</div>
+				</div>
+				<div class="mini-calendar">
+					<div class="calendar-header-mini">
+						<div class="day-header-mini">Pzt</div>
+						<div class="day-header-mini">Sal</div>
+						<div class="day-header-mini">Çar</div>
+						<div class="day-header-mini">Per</div>
+						<div class="day-header-mini">Cum</div>
+						<div class="day-header-mini">Cmt</div>
+						<div class="day-header-mini">Paz</div>
+					</div>
+					<div id="filterCalendarDays" class="calendar-days-mini">
+						<!-- Calendar days will be inserted here -->
+					</div>
+				</div>
+				<div class="filter-actions">
+					<span id="selectedDateInfo" class="selected-date-info">Bugün</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Right Side - Appointments Summary -->
+		<div class="appointments-content">
+			<!-- Loading Spinner -->
+			<div id="appointmentsLoading" class="text-center">
+				<div class="spinner-border" role="status">
+					<span class="sr-only">Yükleniyor...</span>
+				</div>
+			</div>
+
+			<!-- Error Message -->
+			<div id="appointmentsError" class="error-message" style="display: none;"></div>
+
+			<!-- Appointments Summary -->
+			<div id="appointmentsSummary" class="appointments-summary" style="display: none;">
+				<div class="summary-card">
+					<h3 class="summary-title">Randevu Özeti</h3>
+					<div class="summary-stats">
+						<div class="stat-item">
+							<span class="stat-number" id="totalAppointments">0</span>
+							<span class="stat-label">Toplam Randevu</span>
+						</div>
+						<div class="stat-item">
+							<span class="stat-number" id="todayAppointments">0</span>
+							<span class="stat-label">Bugün</span>
+						</div>
+						<div class="stat-item">
+							<span class="stat-number" id="thisWeekAppointments">0</span>
+							<span class="stat-label">Bu Hafta</span>
+						</div>
+					</div>
+					<div class="summary-info">
+						<p><i class="fas fa-info-circle"></i> Takvimde bir güne tıklayarak o günün
+							randevularını görüntüleyebilirsiniz.</p>
+						<p><i class="fas fa-calendar-check"></i> Randevulu günler takvimde yeşil nokta ile
+							işaretlidir.</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- No Appointments Message -->
+			<div id="noAppointments" class="no-appointments" style="display: none;">
+				<div class="empty-state">
+					<i class="fas fa-calendar-times fa-3x"></i>
+					<h3>Henüz Randevunuz Yok</h3>
+					<p>Manuel randevu ekleyebilir veya müşterilerinizin online randevu almasını
+						bekleyebilirsiniz.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Day Appointments Modal -->
+	<div id="dayAppointmentsModal" class="modal" style="display: none;">
+		<div class="modal-content day-appointments-modal">
+			<div class="modal-header">
+				<h3 id="modalDateTitle">Günün Randevuları</h3>
+				<span class="close" onclick="closeDayAppointmentsModal()">&times;</span>
+			</div>
+			<div class="modal-body">
+				<div id="dayAppointmentsList" class="day-appointments-list">
+					<!-- Day appointments will be inserted here -->
+				</div>
+				<div id="noDayAppointments" class="no-day-appointments" style="display: none;">
+					<i class="fas fa-calendar-day"></i>
+					<p>Bu günde henüz randevu bulunmamaktadır.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	// Appointments Section JavaScript
+	let allAppointments = [];
+	let filterCurrentDate = new Date();
+	let selectedFilterDate = null;
+
+	// Initialize appointments section
+	function initializeAppointmentsSection() {
+		initializeCalendarFilter();
+		fetchMyAppointments();
+	}
+
+	async function fetchMyAppointments() {
+		const loading = document.getElementById('appointmentsLoading');
+		const errorMessage = document.getElementById('appointmentsError');
+		const appointmentsSummary = document.getElementById('appointmentsSummary');
+		const noAppointments = document.getElementById('noAppointments');
+
+		try {
+			const response = await fetch('/api/appointments/my-appointments', {
+				credentials: 'include'
+			});
+
+			loading.style.display = 'none';
+
+			if (response.ok) {
+				const appointments = await response.json();
+
+				// Store appointments for calendar filter
+				allAppointments = appointments;
+
+				if (appointments.length > 0) {
+					appointmentsSummary.style.display = 'block';
+					renderAppointmentsSummary(appointments);
+
+					// Update calendar to show appointment indicators
+					if (typeof renderFilterCalendar === 'function') {
+						renderFilterCalendar();
+					}
+				} else {
+					noAppointments.style.display = 'block';
+				}
+			} else if (response.status === 401) {
+				window.location.href = '/login';
+			} else {
+				errorMessage.textContent = 'Randevular yüklenirken bir hata oluştu.';
+				errorMessage.style.display = 'block';
+			}
+		} catch (error) {
+			loading.style.display = 'none';
+			errorMessage.textContent = 'Randevular yüklenirken bir hata oluştu.';
+			errorMessage.style.display = 'block';
+			console.error('Error fetching appointments:', error);
+		}
+	}
+
+	function renderAppointmentsSummary(appointments) {
+		const totalAppointments = document.getElementById('totalAppointments');
+		const todayAppointments = document.getElementById('todayAppointments');
+		const thisWeekAppointments = document.getElementById('thisWeekAppointments');
+
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		const startOfWeek = new Date(today);
+		startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
+
+		const endOfWeek = new Date(startOfWeek);
+		endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
+
+		const todayCount = appointments.filter(appointment => {
+			const appointmentDate = new Date(appointment.startTime);
+			appointmentDate.setHours(0, 0, 0, 0);
+			return appointmentDate.getTime() === today.getTime();
+		}).length;
+
+		const weekCount = appointments.filter(appointment => {
+			const appointmentDate = new Date(appointment.startTime);
+			return appointmentDate >= startOfWeek && appointmentDate <= endOfWeek;
+		}).length;
+
+		totalAppointments.textContent = appointments.length;
+		todayAppointments.textContent = todayCount;
+		thisWeekAppointments.textContent = weekCount;
+	}
+
+	// Calendar Filter Functions
+	function initializeCalendarFilter() {
+		const today = new Date();
+		filterCurrentDate = new Date(today.getFullYear(), today.getMonth(), 1);
+		selectedFilterDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+		renderFilterCalendar();
+		updateSelectedDateInfo();
+	}
+
+	function renderFilterCalendar() {
+		const calendarDays = document.getElementById('filterCalendarDays');
+		const calendarTitle = document.getElementById('filterCalendarTitle');
+
+		const months = [
+			'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+			'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+		];
+
+		calendarTitle.textContent = `${months[filterCurrentDate.getMonth()]} ${filterCurrentDate.getFullYear()}`;
+
+		const firstDay = new Date(filterCurrentDate.getFullYear(), filterCurrentDate.getMonth(), 1);
+		const lastDay = new Date(filterCurrentDate.getFullYear(), filterCurrentDate.getMonth() + 1, 0);
+
+		// Monday as first day (0 = Sunday, 1 = Monday)
+		let startDay = firstDay.getDay();
+		startDay = startDay === 0 ? 6 : startDay - 1;
+
+		const today = new Date();
+		const currentMonth = filterCurrentDate.getMonth();
+		const currentYear = filterCurrentDate.getFullYear();
+
+		calendarDays.innerHTML = '';
+
+		// Previous month days
+		const prevMonth = new Date(currentYear, currentMonth, 0);
+		for (let i = startDay - 1; i >= 0; i--) {
+			const dayNum = prevMonth.getDate() - i;
+			const dayElement = createFilterDayElement(dayNum, 'other-month', currentYear, currentMonth - 1);
+			calendarDays.appendChild(dayElement);
+		}
+
+		// Current month days
+		for (let day = 1; day <= lastDay.getDate(); day++) {
+			const dayDate = new Date(currentYear, currentMonth, day);
+			let classes = '';
+
+			// Check if it's today
+			if (dayDate.toDateString() === today.toDateString()) {
+				classes += ' today';
+			}
+
+			// Check if it's selected
+			if (selectedFilterDate && dayDate.toDateString() === selectedFilterDate.toDateString()) {
+				classes += ' selected';
+			}
+
+			// Check if has appointments
+			if (hasAppointmentsOnDate(dayDate)) {
+				classes += ' has-appointments';
+			}
+
+			const dayElement = createFilterDayElement(day, classes, currentYear, currentMonth);
+			calendarDays.appendChild(dayElement);
+		}
+
+		// Next month days
+		const totalCells = calendarDays.children.length;
+		const remainingCells = 42 - totalCells; // 6 weeks * 7 days
+		for (let day = 1; day <= remainingCells; day++) {
+			const dayElement = createFilterDayElement(day, 'other-month', currentYear, currentMonth + 1);
+			calendarDays.appendChild(dayElement);
+		}
+	}
+
+	function createFilterDayElement(day, classes, year, month) {
+		const dayElement = document.createElement('div');
+		dayElement.className = `calendar-day-mini ${classes}`;
+		dayElement.textContent = day;
+
+		if (!classes.includes('other-month')) {
+			dayElement.onclick = () => selectFilterDate(year, month, day);
+		}
+
+		return dayElement;
+	}
+
+	function hasAppointmentsOnDate(date) {
+		return allAppointments.some(appointment => {
+			const appointmentDate = new Date(appointment.startTime);
+			return appointmentDate.toDateString() === date.toDateString();
+		});
+	}
+
+	function selectFilterDate(year, month, day) {
+		selectedFilterDate = new Date(year, month, day);
+		renderFilterCalendar();
+		updateSelectedDateInfo();
+
+		// Open modal with day's appointments
+		openDayAppointmentsModal(selectedFilterDate);
+	}
+
+	function previousMonthFilter() {
+		filterCurrentDate.setMonth(filterCurrentDate.getMonth() - 1);
+		renderFilterCalendar();
+	}
+
+	function nextMonthFilter() {
+		filterCurrentDate.setMonth(filterCurrentDate.getMonth() + 1);
+		renderFilterCalendar();
+	}
+
+	function updateSelectedDateInfo() {
+		const selectedDateInfo = document.getElementById('selectedDateInfo');
+		if (selectedFilterDate) {
+			const options = {
+				weekday: 'long',
+				year: 'numeric',
+				month: 'long',
+				day: 'numeric'
+			};
+			selectedDateInfo.textContent = `${selectedFilterDate.toLocaleDateString('tr-TR', options)} randevuları gösteriliyor`;
+		} else {
+			selectedDateInfo.textContent = 'Tüm randevular gösteriliyor';
+		}
+	}
+
+	// Day Appointments Modal Functions
+	function openDayAppointmentsModal(date) {
+		const modal = document.getElementById('dayAppointmentsModal');
+		const modalTitle = document.getElementById('modalDateTitle');
+		const dayAppointmentsList = document.getElementById('dayAppointmentsList');
+		const noDayAppointments = document.getElementById('noDayAppointments');
+
+		// Set modal title
+		const options = {
+			weekday: 'long',
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		};
+		modalTitle.textContent = date.toLocaleDateString('tr-TR', options);
+
+		// Filter appointments for selected date
+		const dayAppointments = allAppointments.filter(appointment => {
+			const appointmentDate = new Date(appointment.startTime);
+			return appointmentDate.toDateString() === date.toDateString();
+		});
+
+		// Render appointments
+		if (dayAppointments.length > 0) {
+			dayAppointmentsList.style.display = 'block';
+			noDayAppointments.style.display = 'none';
+			renderDayAppointments(dayAppointments);
+		} else {
+			dayAppointmentsList.style.display = 'none';
+			noDayAppointments.style.display = 'block';
+		}
+
+		// Show modal
+		modal.style.display = 'block';
+	}
+
+	function renderDayAppointments(appointments) {
+		const dayAppointmentsList = document.getElementById('dayAppointmentsList');
+		dayAppointmentsList.innerHTML = '';
+
+		// Sort appointments by time
+		appointments.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
+		appointments.forEach(appointment => {
+			const rawStart = appointment.startTime;
+			const dateObj = new Date(rawStart);
+			const formattedTime = dateObj.toLocaleTimeString('tr-TR', {
+				hour: '2-digit',
+				minute: '2-digit'
+			});
+
+			// Customer info
+			let customerName = 'Müşteri Bilgisi Bulunamadı';
+			let customerInfo = 'Bilinmeyen';
+
+			if (appointment.customer && appointment.customer.name && appointment.customer.surname) {
+				customerName = `${appointment.customer.name} ${appointment.customer.surname}`;
+				customerInfo = `Kayıtlı Müşteri`;
+			}
+			else if (appointment.user && appointment.user.name && appointment.user.surname) {
+				customerName = `${appointment.user.name} ${appointment.user.surname}`;
+				customerInfo = `Kayıtlı Müşteri`;
+			}
+			else if (appointment.guestName && appointment.guestSurname) {
+				customerName = `${appointment.guestName} ${appointment.guestSurname}`;
+				customerInfo = `Misafir`;
+			}
+			else if (appointment.customer && appointment.customer.phoneNumber) {
+				customerName = appointment.customer.phoneNumber;
+				customerInfo = 'Kayıtlı Müşteri';
+			}
+			else if (appointment.guestPhoneNumber) {
+				customerName = appointment.guestPhoneNumber;
+				customerInfo = 'Misafir';
+			}
+
+			// Service info
+			let serviceName = 'Hizmet Bilgisi Yok';
+			let serviceDuration = 'Bilinmiyor';
+
+			if (appointment.service && appointment.service.name) {
+				serviceName = appointment.service.name;
+				serviceDuration = appointment.service.duration ? `${appointment.service.duration} dakika` : 'Bilinmiyor';
+			}
+
+			// Check if appointment is past
+			const now = new Date();
+			const isPastAppointment = dateObj < now;
+			const appointmentClass = isPastAppointment ? 'day-appointment-item past-appointment' : 'day-appointment-item';
+			const statusText = isPastAppointment ? 'Tamamlandı' : 'Planlandı';
+			const cancelButtonHtml = isPastAppointment ? 
+				'<div class="past-appointment-badge">Geçmiş Randevu</div>' : 
+				`<button class="day-cancel-btn" onclick="cancelAppointment('${appointment._id}')" id="day-cancel-${appointment._id}">Randevuyu İptal Et</button>`;
+
+			const appointmentElement = document.createElement('div');
+			appointmentElement.className = appointmentClass;
+			appointmentElement.innerHTML = `
+				<div class="day-appointment-header">
+					<div class="day-customer-name">${customerName}</div>
+					<div class="day-appointment-time">${formattedTime}</div>
+				</div>
+				<div class="day-appointment-details">
+					<div class="day-detail-item">
+						<div class="day-detail-label">Müşteri Tipi:</div>
+						<div class="day-detail-value">${customerInfo}</div>
+					</div>
+					<div class="day-detail-item">
+						<div class="day-detail-label">Hizmet:</div>
+						<div class="day-detail-value day-service-name">${serviceName}</div>
+					</div>
+					<div class="day-detail-item">
+						<div class="day-detail-label">Süre:</div>
+						<div class="day-detail-value">${serviceDuration}</div>
+					</div>
+					<div class="day-detail-item">
+						<div class="day-detail-label">Durum:</div>
+						<div class="day-detail-value">${statusText}</div>
+					</div>
+				</div>
+				${cancelButtonHtml}
+			`;
+
+			dayAppointmentsList.appendChild(appointmentElement);
+		});
+	}
+
+	function closeDayAppointmentsModal() {
+		const modal = document.getElementById('dayAppointmentsModal');
+		modal.style.display = 'none';
+	}
+
+	async function cancelAppointment(appointmentId) {
+		const cancelBtn = document.getElementById(`cancel-${appointmentId}`) || document.getElementById(`day-cancel-${appointmentId}`);
+
+		if (!confirm('Bu randevuyu iptal etmek istediğinizden emin misiniz?')) {
+			return;
+		}
+
+		// Disable button during request
+		if (cancelBtn) {
+			cancelBtn.disabled = true;
+			cancelBtn.textContent = 'İptal ediliyor...';
+		}
+
+		try {
+			const response = await fetch(`/api/appointments/${appointmentId}`, {
+				method: 'DELETE',
+				credentials: 'include'
+			});
+
+			if (response.ok) {
+				// Remove the appointment card from the UI
+				const appointmentCard = cancelBtn ? cancelBtn.closest('.appointment-card, .day-appointment-item') : null;
+				if (appointmentCard) {
+					appointmentCard.remove();
+				}
+
+				// Refresh appointments
+				await fetchMyAppointments();
+
+				alert('Randevu başarıyla iptal edildi.');
+			} else {
+				const errorData = await response.json();
+				alert('Randevu iptal edilirken hata oluştu: ' + (errorData.message || 'Bilinmeyen hata'));
+
+				// Re-enable button on error
+				if (cancelBtn) {
+					cancelBtn.disabled = false;
+					cancelBtn.textContent = 'Randevuyu İptal Et';
+				}
+			}
+		} catch (error) {
+			console.error('Error canceling appointment:', error);
+			alert('Randevu iptal edilirken bir hata oluştu.');
+
+			// Re-enable button on error
+			if (cancelBtn) {
+				cancelBtn.disabled = false;
+				cancelBtn.textContent = 'Randevuyu İptal Et';
+			}
+		}
+	}
+
+	// Manual Appointment Management Functions
+	function showAddAppointmentModal() {
+		document.getElementById('addAppointmentModal').style.display = 'block';
+		document.body.style.overflow = 'hidden';
+
+		// Set minimum date to today
+		const today = new Date().toISOString().split('T')[0];
+		document.getElementById('appointmentDate').min = today;
+
+		// Load customers and services
+		loadCustomersForAppointment();
+		loadServicesForAppointment();
+
+		// Initialize time picker
+		initializeAppointmentTimePicker();
+	}
+
+	function hideAddAppointmentModal() {
+		document.getElementById('addAppointmentModal').style.display = 'none';
+		document.body.style.overflow = 'auto';
+		// Reset form
+		document.getElementById('addAppointmentForm').reset();
+		// Reset to registered customer tab
+		switchCustomerType('registered');
+	}
+
+	function switchCustomerType(type) {
+		const registeredTab = document.getElementById('registeredTab');
+		const guestTab = document.getElementById('guestTab');
+		const registeredSection = document.getElementById('registeredCustomerSection');
+		const guestSection = document.getElementById('guestCustomerSection');
+
+		if (type === 'registered') {
+			registeredTab.classList.add('active');
+			guestTab.classList.remove('active');
+			registeredSection.style.display = 'block';
+			guestSection.style.display = 'none';
+
+			// Clear guest inputs
+			document.getElementById('guestName').value = '';
+			document.getElementById('guestSurname').value = '';
+			document.getElementById('guestPhone').value = '';
+		} else {
+			guestTab.classList.add('active');
+			registeredTab.classList.remove('active');
+			guestSection.style.display = 'block';
+			registeredSection.style.display = 'none';
+
+			// Clear registered customer selection and search
+			document.getElementById('customerId').value = '';
+			document.getElementById('customerSearch').value = '';
+			document.getElementById('selectedCustomerInfo').style.display = 'none';
+		}
+	}
+
+	async function loadCustomersForAppointment() {
+		// Artık otomatik yükleme yapmıyoruz, sadece arama ile çalışıyor
+		return;
+	}
+
+	// Müşteri arama fonksiyonu
+	async function searchCustomers(searchTerm) {
+		const customerIdInput = document.getElementById('customerId');
+		const selectedCustomerInfo = document.getElementById('selectedCustomerInfo');
+
+		// Bilgi alanını temizle
+		selectedCustomerInfo.style.display = 'none';
+		selectedCustomerInfo.className = 'selected-customer-info';
+		customerIdInput.value = '';
+
+		if (!searchTerm || searchTerm.length < 3) {
+			return;
+		}
+
+		try {
+			// Telefon numarası ile direkt arama yap
+			const response = await fetch(`/profile/search?phone=${encodeURIComponent(searchTerm)}`, {
+				credentials: 'include'
+			});
+
+			if (response.ok) {
+				const customer = await response.json();
+				// Tek müşteri bulundu, otomatik seç
+				customerIdInput.value = customer._id;
+				selectedCustomerInfo.textContent = `✓ Seçilen Müşteri: ${customer.name} ${customer.surname} - ${searchTerm}`;
+				selectedCustomerInfo.className = 'selected-customer-info success';
+				selectedCustomerInfo.style.display = 'block';
+			} else if (response.status === 404) {
+				selectedCustomerInfo.textContent = '⚠ Bu telefon numarası ile kayıtlı müşteri bulunamadı';
+				selectedCustomerInfo.className = 'selected-customer-info error';
+				selectedCustomerInfo.style.display = 'block';
+			} else {
+				selectedCustomerInfo.textContent = '❌ Arama sırasında hata oluştu';
+				selectedCustomerInfo.className = 'selected-customer-info error';
+				selectedCustomerInfo.style.display = 'block';
+			}
+		} catch (error) {
+			console.error('Error searching customers:', error);
+			selectedCustomerInfo.textContent = '❌ Arama sırasında hata oluştu';
+			selectedCustomerInfo.className = 'selected-customer-info error';
+			selectedCustomerInfo.style.display = 'block';
+		}
+	}
+
+	async function loadServicesForAppointment() {
+		try {
+			const response = await fetch('/api/barbers/me/services', {
+				credentials: 'include'
+			});
+
+			if (response.ok) {
+				const services = await response.json();
+				const serviceSelect = document.getElementById('appointmentServiceId');
+				serviceSelect.innerHTML = '<option value="">Hizmet seçin...</option>';
+
+				services.forEach(serviceOffered => {
+					// API'den gelen veri yapısına göre service bilgilerini al
+					let serviceName, serviceDuration, serviceId;
+
+					if (serviceOffered.service) {
+						// Populate edilmiş durumda
+						serviceName = serviceOffered.service.name || 'İsimsiz Hizmet';
+						serviceDuration = serviceOffered.duration || serviceOffered.service.duration || 'Belirsiz';
+						serviceId = serviceOffered.service._id;
+					} else {
+						// Direkt serviceOffered içinde bilgiler var
+						serviceName = serviceOffered.name || 'İsimsiz Hizmet';
+						serviceDuration = serviceOffered.duration || 'Belirsiz';
+						serviceId = serviceOffered._id;
+					}
+
+					const option = document.createElement('option');
+					option.value = serviceId;
+					option.textContent = `${serviceName} (${serviceDuration} dk)`;
+					serviceSelect.appendChild(option);
+				});
+			}
+		} catch (error) {
+			console.error('Error loading services:', error);
+		}
+	}
+
+	function initializeAppointmentTimePicker() {
+		const timeInput = document.getElementById('appointmentTime');
+
+		// Initialize Flatpickr for appointment time
+		flatpickr(timeInput, {
+			enableTime: true,
+			noCalendar: true,
+			dateFormat: "H:i",
+			time_24hr: true,
+			defaultHour: 9,
+			defaultMinute: 0,
+			minuteIncrement: 15,
+			locale: "tr",
+			theme: "dark"
+		});
+	}
+
+	async function handleAddAppointmentSubmit(e) {
+		e.preventDefault();
+
+		const registeredTab = document.getElementById('registeredTab');
+		const isRegistered = registeredTab.classList.contains('active');
+
+		let appointmentData = {
+			serviceId: document.getElementById('appointmentServiceId').value,
+			startTime: `${document.getElementById('appointmentDate').value}T${document.getElementById('appointmentTime').value}:00`
+		};
+
+		// Validation
+		if (!appointmentData.serviceId) {
+			alert('Lütfen bir hizmet seçin');
+			return;
+		}
+
+		if (!document.getElementById('appointmentDate').value || !document.getElementById('appointmentTime').value) {
+			alert('Lütfen tarih ve saat seçin');
+			return;
+		}
+
+		if (isRegistered) {
+			const customerId = document.getElementById('customerId').value;
+			if (!customerId) {
+				alert('Lütfen bir müşteri seçin');
+				return;
+			}
+			appointmentData.customerId = customerId;
+		} else {
+			const guestName = document.getElementById('guestName').value.trim();
+			const guestSurname = document.getElementById('guestSurname').value.trim();
+			const guestPhone = document.getElementById('guestPhone').value.trim();
+
+			if (!guestName || !guestSurname || !guestPhone) {
+				alert('Lütfen tüm misafir bilgilerini doldurun');
+				return;
+			}
+
+			appointmentData.guestName = guestName;
+			appointmentData.guestSurname = guestSurname;
+			appointmentData.guestPhone = guestPhone;
+		}
+
+		try {
+			const response = await fetch('/api/appointments/by-barber', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify(appointmentData)
+			});
+
+			if (response.ok) {
+				hideAddAppointmentModal();
+				await fetchMyAppointments(); // Refresh appointments list
+				alert('Randevu başarıyla oluşturuldu!');
+			} else {
+				const error = await response.json();
+				throw new Error(error.message || 'Randevu oluşturulurken hata oluştu');
+			}
+		} catch (error) {
+			console.error('Error:', error);
+			alert('Randevu oluşturulurken hata oluştu: ' + error.message);
+		}
+	}
+
+	// Initialize appointments section when DOM is ready
+	document.addEventListener('DOMContentLoaded', function() {
+		// Only initialize if this section is present
+		if (document.querySelector('.appointments-section')) {
+			initializeAppointmentsSection();
+		}
+	});
+</script>

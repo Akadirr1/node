@@ -24,7 +24,7 @@ const createBarber = async (req, res) => {
 			res.status(400).json({ message: 'This number already taken' })
 		}
 		else {
-			res.status(500).json({ message: 'barber save error', error: error.message })
+			res.status(500).json({ message: 'Berber kaydedilirken hata oluştu.' })
 		}
 	}
 }
@@ -47,7 +47,7 @@ const createUser = async (req, res) => {
 		if (error.code === 11000) {
 			res.status(400).json({ message: 'this number already taken' });
 		}
-		res.status(500).json({ message: 'user save error', error: error.message })
+		res.status(500).json({ message: 'Kullanıcı kaydedilirken hata oluştu.' })
 	}
 }
 const loginUser = async (req, res) => {
@@ -74,13 +74,13 @@ const loginUser = async (req, res) => {
 
 		res.cookie('token', token, {
 			httpOnly: true,
-			//secure: process.env.NODE_ENV === 'production',
+			secure: process.env.NODE_ENV === 'production',
 			sameSite: 'strict',
 			maxAge: 60 * 60 * 1000
 		})
 		res.status(200).json({ message: 'Giris basarili', user: payload })
 	} catch (error) {
-		res.status(500).json({ message: 'Sunucu hatası.', error: error.message });
+		res.status(500).json({ message: 'Sunucu hatası.' });
 
 	}
 }
@@ -105,15 +105,27 @@ const getAppointments = async (req, res) => {
 	return res.status(200).json({ Appointments: appointments })
 }
 const logOut = (req, res) => {
+	// Clear JWT token cookie
 	res.cookie('token', '', {
 		httpOnly: true,
-		expires: new Date(0)
+		secure: process.env.NODE_ENV === 'production',
+		sameSite: 'strict',
+		expires: new Date(0),
+		path: '/'
 	});
-	res.status(200).json({ message: 'Başarıyla çıkış yapıldı.' });
-
+	
+	res.status(200).json({ 
+		message: 'Başarıyla çıkış yapıldı.',
+		success: true 
+	});
 }
 const searchCustomerByPhone = async (req, res) => {
 	try {
+		// Sadece berberler müşteri arayabilir
+		if (req.user.role !== 'barber' && req.user.role !== 'admin') {
+			return res.status(403).json({ message: "Bu işlemi yapmaya yetkiniz yok. Sadece berberler müşteri arayabilir." });
+		}
+
 		const { phone } = req.query; // ?phone=5551112233
 		if (!phone) {
 			return res.status(400).json({ message: "Telefon numarası gerekli." });

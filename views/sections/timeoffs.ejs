@@ -1,0 +1,585 @@
+<style>
+	.timeoffs-section {
+		padding: 0 40px;
+		margin-top: 50px;
+	}
+
+	.timeoffs-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 30px;
+	}
+
+	.add-timeoff-btn {
+		background: #ff9800;
+		color: #000000;
+		border: none;
+		padding: 12px 24px;
+		border-radius: 8px;
+		font-size: 16px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: background-color 0.3s ease;
+	}
+
+	.add-timeoff-btn:hover {
+		background: #f57c00;
+	}
+
+	.timeoffs-list {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: 20px;
+	}
+
+	.timeoff-card {
+		background: #2d2d2d;
+		border-radius: 12px;
+		padding: 20px;
+		border: 1px solid #4a4a4a;
+		transition: transform 0.3s ease, box-shadow 0.3s ease;
+		position: relative;
+	}
+
+	.timeoff-card:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+		border-color: #ff9800;
+	}
+
+	.timeoff-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 15px;
+	}
+
+	.timeoff-date {
+		color: #ff9800;
+		font-size: 18px;
+		font-weight: 600;
+	}
+
+	.timeoff-duration {
+		color: #ffffff;
+		font-size: 14px;
+		background: #4a4a4a;
+		padding: 6px 12px;
+		border-radius: 12px;
+		font-weight: 500;
+	}
+
+	.timeoff-reason {
+		color: #ffffff;
+		font-size: 16px;
+		margin-bottom: 10px;
+	}
+
+	.no-timeoffs {
+		text-align: center;
+		padding: 60px 20px;
+		color: #b0b0b0;
+		font-size: 18px;
+	}
+
+	/* Time Off Modal Specific Styles */
+	/* Modal Styles */
+	.modal {
+		position: fixed;
+		z-index: 1000;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.8);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.modal-content {
+		background: #2d2d2d;
+		border-radius: 12px;
+		width: 90%;
+		max-width: 600px;
+		border: 1px solid #4a4a4a;
+	}
+
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 20px 25px;
+		border-bottom: 1px solid #4a4a4a;
+	}
+
+	.modal-body {
+		padding: 25px;
+	}
+
+	.time-off-modal {
+		max-width: 600px;
+	}
+
+	.form-label {
+		color: #8bc34a !important;
+		font-size: 16px;
+		font-weight: 600;
+		margin-bottom: 15px;
+	}
+
+	.date-range-container {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 20px;
+		margin-bottom: 10px;
+	}
+
+	.time-selection-container {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 20px;
+		margin-bottom: 10px;
+	}
+
+	.timeoff-time-selection {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 20px;
+		margin-bottom: 10px;
+	}
+
+	.date-input-group,
+	.time-input-group {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.time-group {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.date-input-group label,
+	.time-input-group label,
+	.time-group label {
+		color: #ffffff;
+		font-size: 14px;
+		font-weight: 500;
+		margin-bottom: 8px;
+	}
+
+	.date-input-group input,
+	.time-input-group input {
+		padding: 12px;
+		border: 2px solid #4a4a4a;
+		border-radius: 8px;
+		background: #1a1a1a;
+		color: #ffffff;
+		font-size: 16px;
+		transition: border-color 0.3s ease;
+	}
+
+	.time-group .time-picker {
+		padding: 12px;
+		border: 2px solid #4a4a4a;
+		border-radius: 8px;
+		background: #1a1a1a;
+		color: #ffffff;
+		font-size: 16px;
+		cursor: pointer;
+		transition: border-color 0.3s ease;
+	}
+
+	.date-input-group input:focus,
+	.time-input-group input:focus,
+	.time-group .time-picker:focus {
+		outline: none;
+		border-color: #8bc34a;
+		box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.1);
+	}
+
+	.time-info {
+		text-align: center;
+		margin-top: 10px;
+	}
+
+	.time-info small {
+		color: #999;
+		font-size: 12px;
+	}
+
+	/* Custom date and time input styling */
+	input[type="date"]::-webkit-calendar-picker-indicator,
+	input[type="time"]::-webkit-calendar-picker-indicator {
+		filter: invert(1);
+		cursor: pointer;
+	}
+
+	/* Responsive design */
+	@media (max-width: 768px) {
+		.timeoffs-section {
+			padding: 0 20px;
+		}
+
+		.timeoffs-list {
+			grid-template-columns: 1fr;
+		}
+
+		.timeoffs-header {
+			flex-direction: column;
+			gap: 15px;
+			align-items: stretch;
+		}
+
+		.date-range-container,
+		.time-selection-container,
+		.timeoff-time-selection {
+			grid-template-columns: 1fr;
+			gap: 15px;
+		}
+
+		.modal-content {
+			width: 95%;
+			margin: 10px;
+		}
+
+		.time-off-modal {
+			margin: 20px;
+			max-width: none;
+		}
+	}
+</style>
+
+<!-- Time Offs Section -->
+<div class="timeoffs-section">
+	<div class="timeoffs-header">
+		<h2 class="section-title">İzin Günlerim</h2>
+		<button class="add-timeoff-btn" onclick="showAddTimeOffModal()">İzin Ekle</button>
+	</div>
+
+	<!-- Loading Spinner for Time Offs -->
+	<div id="timeOffsLoading" class="text-center">
+		<div class="spinner-border" role="status">
+			<span class="sr-only">Yükleniyor...</span>
+		</div>
+	</div>
+
+	<!-- Error Message for Time Offs -->
+	<div id="timeOffsError" class="error-message" style="display: none;"></div>
+
+	<!-- Time Offs List -->
+	<div id="timeOffsList" class="timeoffs-list" style="display: none;">
+		<!-- Time offs will be inserted here -->
+	</div>
+
+	<!-- No Time Offs Message -->
+	<div id="noTimeOffs" class="no-timeoffs" style="display: none;">
+		<p>Henüz izin gününüz bulunmamaktadır.</p>
+	</div>
+</div>
+
+<script>
+	// Time Offs Section JavaScript
+
+	// Initialize time offs section
+	function initializeTimeOffsSection() {
+		fetchMyTimeOffs();
+		setupTimeOffsEventListeners();
+	}
+
+	function setupTimeOffsEventListeners() {
+		// Add time off form submit handler
+		const addTimeOffForm = document.getElementById('addTimeOffForm');
+		if (addTimeOffForm) {
+			addTimeOffForm.addEventListener('submit', handleAddTimeOffSubmit);
+		}
+
+		// Modal click outside to close
+		window.addEventListener('click', function (event) {
+			const addTimeOffModal = document.getElementById('addTimeOffModal');
+
+			if (event.target === addTimeOffModal) {
+				hideAddTimeOffModal();
+			}
+		});
+	}
+
+	async function fetchMyTimeOffs() {
+		const loading = document.getElementById('timeOffsLoading');
+		const errorMessage = document.getElementById('timeOffsError');
+		const timeOffsList = document.getElementById('timeOffsList');
+		const noTimeOffs = document.getElementById('noTimeOffs');
+
+		try {
+			const response = await fetch('/api/barbers/me/timeOffs', {
+				credentials: 'include'
+			});
+
+			loading.style.display = 'none';
+
+			if (response.ok) {
+				const timeOffsData = await response.json();
+
+				// Past end dates should not be shown
+				const now = new Date();
+				const upcomingOrOngoing = timeOffsData.filter(to => {
+					let end = null;
+					if (to.endTime) {
+						end = new Date(to.endTime);
+					} else if (to.endDate) {
+						end = new Date(to.endDate);
+						// If only a date is provided, consider the end of that day
+						end.setHours(23, 59, 59, 999);
+					}
+					// If no end provided, keep it (defensive)
+					if (!end || isNaN(end.getTime())) return true;
+					return end >= now;
+				});
+
+				if (upcomingOrOngoing.length > 0) {
+					timeOffsList.style.display = 'grid';
+					renderTimeOffs(upcomingOrOngoing);
+				} else {
+					// Clear any previous items and show empty state
+					timeOffsList.innerHTML = '';
+					timeOffsList.style.display = 'none';
+					noTimeOffs.style.display = 'block';
+				}
+			} else if (response.status === 401) {
+				window.location.href = '/login';
+			} else {
+				errorMessage.textContent = 'İzin günleri yüklenirken bir hata oluştu.';
+				errorMessage.style.display = 'block';
+			}
+		} catch (error) {
+			loading.style.display = 'none';
+			errorMessage.textContent = 'İzin günleri yüklenirken bir hata oluştu.';
+			errorMessage.style.display = 'block';
+			console.error('Error fetching time offs:', error);
+		}
+	}
+
+	function renderTimeOffs(timeOffs) {
+		const timeOffsList = document.getElementById('timeOffsList');
+		timeOffsList.innerHTML = '';
+
+		timeOffs.forEach(timeOff => {
+			const startDate = new Date(timeOff.startTime || timeOff.startDate);
+			const endDate = new Date(timeOff.endTime || timeOff.endDate);
+
+			const formatDate = (date) => {
+				return date.toLocaleDateString('tr-TR', {
+					day: 'numeric',
+					month: 'long',
+					year: 'numeric'
+				});
+			};
+
+			const formatTime = (date) => {
+				return date.toLocaleTimeString('tr-TR', {
+					hour: '2-digit',
+					minute: '2-digit'
+				});
+			};
+
+			// Calculate date range display
+			const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+			const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+			const dayDifference = Math.ceil((endDateOnly - startDateOnly) / (1000 * 60 * 60 * 24));
+
+			let dateDisplay;
+			let durationDisplay;
+
+			if (dayDifference === 0) {
+				// Same day
+				dateDisplay = formatDate(startDate);
+				durationDisplay = `${formatTime(startDate)} - ${formatTime(endDate)}`;
+			} else {
+				// Multiple days
+				dateDisplay = `${formatDate(startDate)} - ${formatDate(endDate)}`;
+				durationDisplay = `${dayDifference + 1} gün`;
+			}
+
+			const timeOffCard = document.createElement('div');
+			timeOffCard.className = 'timeoff-card';
+
+			timeOffCard.innerHTML = `
+				<div class="timeoff-header">
+					<div class="timeoff-date">${dateDisplay}</div>
+					<div class="timeoff-duration">${durationDisplay}</div>
+				</div>
+				${timeOff.reason ? `<div class="timeoff-reason">${timeOff.reason}</div>` : ''}
+			`;
+
+			timeOffsList.appendChild(timeOffCard);
+		});
+	}
+
+	// Time Off Management Functions
+	function showAddTimeOffModal() {
+		document.getElementById('addTimeOffModal').style.display = 'block';
+		document.body.style.overflow = 'hidden';
+
+		// Set minimum date to today
+		const today = new Date().toISOString().split('T')[0];
+		const startDateInput = document.getElementById('timeOffStartDate');
+		const endDateInput = document.getElementById('timeOffEndDate');
+
+		startDateInput.min = today;
+		endDateInput.min = today;
+
+		// Update end date minimum when start date changes
+		startDateInput.addEventListener('change', function () {
+			endDateInput.min = this.value;
+			if (endDateInput.value && endDateInput.value < this.value) {
+				endDateInput.value = this.value;
+			}
+		});
+
+		// Initialize time pickers with availability-style functionality
+		initializeTimeOffTimePickers();
+	}
+
+	function hideAddTimeOffModal() {
+		document.getElementById('addTimeOffModal').style.display = 'none';
+		document.body.style.overflow = 'auto';
+		// Reset form
+		document.getElementById('addTimeOffForm').reset();
+	}
+
+	async function handleAddTimeOffSubmit(e) {
+		e.preventDefault();
+
+		const startDate = document.getElementById('timeOffStartDate').value;
+		const endDate = document.getElementById('timeOffEndDate').value;
+		const startTime = document.getElementById('timeoff-start-time').value;
+		const endTime = document.getElementById('timeoff-end-time').value;
+		const reason = document.getElementById('timeOffReason').value.trim();
+
+		// Validation
+		if (!startDate) {
+			alert('Lütfen başlangıç tarihi seçin');
+			return;
+		}
+		if (!endDate) {
+			alert('Lütfen bitiş tarihi seçin');
+			return;
+		}
+		if (!startTime) {
+			alert('Lütfen başlangıç saati seçin');
+			return;
+		}
+		if (!endTime) {
+			alert('Lütfen bitiş saati seçin');
+			return;
+		}
+		if (!reason) {
+			alert('Lütfen izin sebebini yazın');
+			return;
+		}
+
+		// Check if end date is not before start date
+		if (new Date(endDate) < new Date(startDate)) {
+			alert('Bitiş tarihi başlangıç tarihinden önce olamaz');
+			return;
+		}
+
+		// Check if same day and end time is not after start time
+		if (startDate === endDate && endTime <= startTime) {
+			alert('Bitiş saati başlangıç saatinden sonra olmalı');
+			return;
+		}
+
+		try {
+			// Create ISO datetime strings
+			const startDateTime = new Date(`${startDate}T${startTime}:00`);
+			const endDateTime = new Date(`${endDate}T${endTime}:00`);
+
+			const requestBody = {
+				reason: reason,
+				startTime: startDateTime.toISOString(),
+				endTime: endDateTime.toISOString()
+			};
+
+			const response = await fetch('/api/barbers/me/timeOffs', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				credentials: 'include',
+				body: JSON.stringify(requestBody)
+			});
+
+			if (response.ok) {
+				hideAddTimeOffModal();
+				await fetchMyTimeOffs(); // Refresh time offs list
+				alert('İzin başvurusu başarıyla gönderildi!');
+			} else {
+				const error = await response.json();
+				throw new Error(error.message || 'İzin eklenirken hata oluştu');
+			}
+		} catch (error) {
+			console.error('Error:', error);
+			alert('İzin eklenirken hata oluştu: ' + error.message);
+		}
+	}
+
+	// Initialize time pickers for time-off modal
+	function initializeTimeOffTimePickers() {
+		const startTimeInput = document.getElementById('timeoff-start-time');
+		const endTimeInput = document.getElementById('timeoff-end-time');
+
+		// Initialize Flatpickr for start time
+		const startTimePicker = flatpickr(startTimeInput, {
+			enableTime: true,
+			noCalendar: true,
+			dateFormat: "H:i",
+			time_24hr: true,
+			defaultHour: 9,
+			defaultMinute: 0,
+			minuteIncrement: 15,
+			locale: "tr",
+			theme: "dark",
+			onChange: function (selectedDates, dateStr) {
+				// Update end time minimum when start time changes
+				const startTime = dateStr;
+				const endTime = endTimeInput.value;
+
+				if (endTime && endTime <= startTime) {
+					// Add 1 hour to start time
+					const [hours, minutes] = startTime.split(':');
+					const newHour = (parseInt(hours) + 1) % 24;
+					const newTime = `${newHour.toString().padStart(2, '0')}:${minutes}`;
+					endTimePicker.setDate(newTime, true);
+				}
+			}
+		});
+
+		// Initialize Flatpickr for end time
+		const endTimePicker = flatpickr(endTimeInput, {
+			enableTime: true,
+			noCalendar: true,
+			dateFormat: "H:i",
+			time_24hr: true,
+			defaultHour: 17,
+			defaultMinute: 0,
+			minuteIncrement: 15,
+			locale: "tr",
+			theme: "dark"
+		});
+
+		// Set default values
+		startTimePicker.setDate("09:00", true);
+		endTimePicker.setDate("17:00", true);
+	}
+
+	// Initialize time offs section when DOM is ready
+	document.addEventListener('DOMContentLoaded', function() {
+		// Only initialize if this section is present
+		if (document.querySelector('.timeoffs-section')) {
+			initializeTimeOffsSection();
+		}
+	});
+</script>
