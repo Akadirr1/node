@@ -65,9 +65,10 @@ app.use(cors(corsOptions));
 
 // Request logging middleware
 app.use(requestLogger);
+if (process.env.NODE_ENV === 'production')
+    {app.use(helmet({
+    // Security middleware
 
-// Security middleware
-app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
@@ -84,6 +85,7 @@ app.use(helmet({
     },
     crossOriginEmbedderPolicy: false
 }));
+}
 
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))

@@ -1,13 +1,18 @@
 <!-- views/otp-verification.ejs -->
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
+    <title>
+        <%= title %>
+    </title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
     <div class="container mt-5">
         <div class="row justify-content-center">
@@ -18,37 +23,56 @@
                     </div>
                     <div class="card-body">
                         <div id="alertContainer"></div>
-                        
+
                         <div id="otpForm">
                             <p class="text-center mb-4">
                                 <span id="phoneDisplay"></span> numarasına gönderilen 6 haneli doğrulama kodunu girin.
                             </p>
-                            
+
                             <form id="verifyOtpForm">
                                 <div class="mb-3">
                                     <input type="hidden" id="phoneNumber" name="phoneNumber">
                                     <input type="hidden" id="otpType" name="otpType">
                                     <label for="otp" class="form-label">Doğrulama Kodu</label>
-                                    <input type="text" class="form-control text-center fs-4" id="otp" name="otp" 
-                                           maxlength="6" placeholder="000000" required>
+                                    <input type="text" class="form-control text-center fs-4" id="otp" name="otp"
+                                        maxlength="6" placeholder="000000" required>
                                 </div>
-                                
+
                                 <div id="passwordFields" style="display: none;">
                                     <div class="mb-3">
                                         <label for="password" class="form-label">Şifre</label>
-                                        <input type="password" class="form-control" id="password" name="password" minlength="6">
+                                        <input type="password" class="form-control" id="password" name="password"
+                                            minlength="8" required>
+                                        <div class="form-text">
+                                            <small class="text-muted">Şifre gereksinimleri:</small>
+                                            <ul class="list-unstyled mt-1 mb-0">
+                                                <li id="lengthReq" class="text-danger">
+                                                    <i class="fas fa-times"></i> En az 8 karakter
+                                                </li>
+                                                <li id="uppercaseReq" class="text-danger">
+                                                    <i class="fas fa-times"></i> En az 1 büyük harf
+                                                </li>
+                                                <li id="numberReq" class="text-danger">
+                                                    <i class="fas fa-times"></i> En az 1 sayı
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
                                     <div class="mb-3">
                                         <label for="confirmPassword" class="form-label">Şifre Tekrar</label>
-                                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" minlength="6">
+                                        <input type="password" class="form-control" id="confirmPassword"
+                                            name="confirmPassword" minlength="8" required>
+                                        <div id="passwordMatch" class="invalid-feedback">
+                                            Şifreler eşleşmiyor!
+                                        </div>
                                     </div>
                                 </div>
-                                
+
                                 <button type="submit" class="btn btn-primary w-100" id="verifyBtn">
                                     Doğrula
                                 </button>
                             </form>
-                            
+
                             <div class="text-center mt-3">
                                 <p class="mb-2">
                                     <span id="countdown">10:00</span> içinde kod gelmezse
@@ -115,6 +139,12 @@
                     e.target.value = e.target.value.replace(/[^0-9]/g, '');
                 });
 
+                // Password validation
+                document.getElementById('password').addEventListener('input', () => {
+                    this.validatePassword();
+                    this.validatePasswords();
+                });
+
                 // Password confirmation validation
                 document.getElementById('confirmPassword').addEventListener('input', () => {
                     this.validatePasswords();
@@ -131,8 +161,10 @@
                         this.showAlert('Şifreler eşleşmiyor!', 'danger');
                         return;
                     }
-                    if (data.password.length < 6) {
-                        this.showAlert('Şifre en az 6 karakter olmalıdır!', 'danger');
+
+                    // Check password requirements
+                    if (!this.validatePassword()) {
+                        this.showAlert('Şifre gereksinimlerini karşılamıyor! Lütfen tüm gereksinimleri sağlayın.', 'danger');
                         return;
                     }
                 }
@@ -152,6 +184,7 @@
                         case 'register':
                             endpoint = '/api/otp/verify-registration-otp';
                             payload.password = data.password;
+                            payload.confirmPassword = data.confirmPassword;
                             break;
                         case 'login':
                             endpoint = '/api/otp/verify-login-otp';
@@ -159,12 +192,13 @@
                         case 'password_reset':
                             endpoint = '/api/otp/verify-password-reset-otp';
                             payload.newPassword = data.password;
+                            payload.confirmPassword = data.confirmPassword;
                             break;
                     }
 
                     console.log('Sending request to:', endpoint);
                     console.log('Payload:', payload);
-                    
+
                     const response = await fetch(endpoint, {
                         method: 'POST',
                         headers: {
@@ -179,7 +213,7 @@
 
                     if (response.ok) {
                         this.showAlert(result.message, 'success');
-                        
+
                         // Clear localStorage
                         localStorage.removeItem('otpPhone');
                         localStorage.removeItem('otpType');
@@ -262,7 +296,7 @@
 
                 const countdownElement = document.getElementById('countdown');
                 const resendBtn = document.getElementById('resendBtn');
-                
+
                 let timeLeft = seconds;
                 resendBtn.disabled = true;
 
@@ -281,15 +315,50 @@
                 }, 1000);
             }
 
+            validatePassword() {
+                const password = document.getElementById('password').value;
+                const lengthReq = document.getElementById('lengthReq');
+                const uppercaseReq = document.getElementById('uppercaseReq');
+                const numberReq = document.getElementById('numberReq');
+
+                // Check length (minimum 8 characters)
+                const hasLength = password.length >= 8;
+                this.updateRequirement(lengthReq, hasLength);
+
+                // Check uppercase letter
+                const hasUppercase = /[A-Z]/.test(password);
+                this.updateRequirement(uppercaseReq, hasUppercase);
+
+                // Check number
+                const hasNumber = /[0-9]/.test(password);
+                this.updateRequirement(numberReq, hasNumber);
+
+                return hasLength && hasUppercase && hasNumber;
+            }
+
+            updateRequirement(element, isValid) {
+                const icon = element.querySelector('i');
+                if (isValid) {
+                    element.className = 'text-success';
+                    icon.className = 'fas fa-check';
+                } else {
+                    element.className = 'text-danger';
+                    icon.className = 'fas fa-times';
+                }
+            }
+
             validatePasswords() {
                 const password = document.getElementById('password').value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
                 const confirmInput = document.getElementById('confirmPassword');
+                const passwordMatch = document.getElementById('passwordMatch');
 
                 if (confirmPassword && password !== confirmPassword) {
                     confirmInput.classList.add('is-invalid');
+                    passwordMatch.style.display = 'block';
                 } else {
                     confirmInput.classList.remove('is-invalid');
+                    passwordMatch.style.display = 'none';
                 }
             }
 
@@ -327,4 +396,5 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

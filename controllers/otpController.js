@@ -3,6 +3,7 @@ const OTP = require('../models/OTP');
 const smsService = require('../services/smsService');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const { validatePassword, validatePasswordConfirmation } = require('../utils/passwordValidation');
 
 // Send OTP for registration
 const sendRegistrationOTP = async (req, res) => {
@@ -10,16 +11,16 @@ const sendRegistrationOTP = async (req, res) => {
         const { phoneNumber, name, surname } = req.body;
 
         if (!phoneNumber || !name || !surname) {
-            return res.status(400).json({ 
-                message: 'Telefon numarası, ad ve soyad gereklidir.' 
+            return res.status(400).json({
+                message: 'Telefon numarası, ad ve soyad gereklidir.'
             });
         }
 
         // Check if user already exists
         const existingUser = await User.findOne({ phoneNumber });
         if (existingUser) {
-            return res.status(400).json({ 
-                message: 'Bu telefon numarası ile zaten kayıtlı bir kullanıcı bulunmaktadır.' 
+            return res.status(400).json({
+                message: 'Bu telefon numarası ile zaten kayıtlı bir kullanıcı bulunmaktadır.'
             });
         }
 
@@ -39,27 +40,27 @@ const sendRegistrationOTP = async (req, res) => {
 
         // Send SMS
         const smsResult = await smsService.sendOTP(phoneNumber, otpCode);
-        
+
         if (smsResult.success) {
             // Store temporary user data in OTP record
             newOTP.tempUserData = { phoneNumber, name, surname };
             await newOTP.save();
-            
+
             res.status(200).json({
                 message: 'Doğrulama kodu gönderildi. Lütfen telefonunuzu kontrol edin.',
                 phoneNumber: phoneNumber.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') // Mask phone number
             });
         } else {
             await OTP.deleteOne({ _id: newOTP._id });
-            res.status(500).json({ 
-                message: 'SMS gönderimi başarısız. Lütfen daha sonra tekrar deneyin.' 
+            res.status(500).json({
+                message: 'SMS gönderimi başarısız. Lütfen daha sonra tekrar deneyin.'
             });
         }
 
     } catch (error) {
         console.error('Registration OTP Error:', error);
-        res.status(500).json({ 
-            message: 'Sunucu hatası oluştu.' 
+        res.status(500).json({
+            message: 'Sunucu hatası oluştu.'
         });
     }
 };
@@ -67,12 +68,31 @@ const sendRegistrationOTP = async (req, res) => {
 // Verify registration OTP and create user
 const verifyRegistrationOTP = async (req, res) => {
     try {
-        const { phoneNumber, otp, password } = req.body;
+        const { phoneNumber, otp, password, confirmPassword } = req.body;
 
         if (!phoneNumber || !otp || !password) {
             return res.status(400).json({
                 message: 'Telefon numarası, doğrulama kodu ve şifre gereklidir.'
             });
+        }
+
+        // Validate password strength
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.isValid) {
+            return res.status(400).json({
+                message: 'Şifre gereksinimleri karşılanmıyor.',
+                errors: passwordValidation.errors
+            });
+        }
+
+        // Validate password confirmation if provided
+        if (confirmPassword) {
+            const confirmationValidation = validatePasswordConfirmation(password, confirmPassword);
+            if (!confirmationValidation.isValid) {
+                return res.status(400).json({
+                    message: confirmationValidation.error
+                });
+            }
         }
 
         // Find OTP
@@ -101,7 +121,7 @@ const verifyRegistrationOTP = async (req, res) => {
         if (otpRecord.otp !== otp) {
             otpRecord.attempts += 1;
             await otpRecord.save();
-            
+
             return res.status(400).json({
                 message: `Yanlış doğrulama kodu. ${3 - otpRecord.attempts} hakkınız kaldı.`
             });
@@ -265,7 +285,7 @@ const verifyLoginOTP = async (req, res) => {
         if (otpRecord.otp !== otp) {
             otpRecord.attempts += 1;
             await otpRecord.save();
-            
+
             return res.status(400).json({
                 message: `Yanlış doğrulama kodu. ${3 - otpRecord.attempts} hakkınız kaldı.`
             });
@@ -372,7 +392,7 @@ const sendPasswordResetOTP = async (req, res) => {
 // Verify password reset and update password
 const verifyPasswordResetOTP = async (req, res) => {
     try {
-        const { phoneNumber, otp, newPassword } = req.body;
+        const { phoneNumber, otp, newPassword, confirmPassword } = req.body;
 
         if (!phoneNumber || !otp || !newPassword) {
             return res.status(400).json({
@@ -380,10 +400,23 @@ const verifyPasswordResetOTP = async (req, res) => {
             });
         }
 
-        if (newPassword.length < 6) {
+        // Validate password strength
+        const passwordValidation = validatePassword(newPassword);
+        if (!passwordValidation.isValid) {
             return res.status(400).json({
-                message: 'Şifre en az 6 karakter olmalıdır.'
+                message: 'Şifre gereksinimleri karşılanmıyor.',
+                errors: passwordValidation.errors
             });
+        }
+
+        // Validate password confirmation if provided
+        if (confirmPassword) {
+            const confirmationValidation = validatePasswordConfirmation(newPassword, confirmPassword);
+            if (!confirmationValidation.isValid) {
+                return res.status(400).json({
+                    message: confirmationValidation.error
+                });
+            }
         }
 
         const otpRecord = await OTP.findOne({
@@ -409,7 +442,7 @@ const verifyPasswordResetOTP = async (req, res) => {
         if (otpRecord.otp !== otp) {
             otpRecord.attempts += 1;
             await otpRecord.save();
-            
+
             return res.status(400).json({
                 message: `Yanlış doğrulama kodu. ${3 - otpRecord.attempts} hakkınız kaldı.`
             });
